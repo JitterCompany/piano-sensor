@@ -3,13 +3,11 @@
 
 // pick a panicking behavior
 extern crate panic_halt; // you can put a breakpoint on `rust_begin_unwind` to catch panics
-// extern crate panic_semihosting; // logs messages to the host stderr; requires a debugger
 
-use cortex_m::asm;
 use cortex_m_rt::entry;
 
+#[cfg(feature = "use_semihosting")]
 #[macro_use]
-
 #[cfg(feature = "use_semihosting")]
 extern crate cortex_m_semihosting;
 #[cfg(feature = "use_semihosting")]
@@ -21,7 +19,6 @@ extern crate stm32f1xx_hal;
 
 #[entry]
 fn main() -> ! {
-    asm::nop(); // To not have main optimize to abort in release mode, remove when you add code
 
     #[cfg(feature = "use_semihosting")]
     semihosting_print_example().ok();
