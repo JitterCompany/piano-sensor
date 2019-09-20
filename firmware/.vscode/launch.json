@@ -24,7 +24,8 @@
 
       "targetId": 1,
       "showDevDebugOutput": false,
-      "preLaunchTask": "cargo-build"
+      "preLaunchTask": "cargo-build",
+      "powerOverBMP": "enable"
     },
     {
       "type": "cortex-debug",
@@ -46,6 +47,7 @@
 
       "targetId": 1,
       "showDevDebugOutput": false,
+      "powerOverBMP": "enable"
     }
   ]
 }
