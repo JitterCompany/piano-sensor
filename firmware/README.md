@@ -21,3 +21,23 @@ Build the application
 ``` console
 $ cargo build
 ```
+
+
+## Flashing
+
+using Cargo:
+
+```
+cargo run
+```
+
+See .cargo/config for `runner` command.
+
+
+or using Bobbin:
+
+```
+bobbin load --bin firmware
+```
+
+Or using vscode: Run the debugger > `Build&Launch`

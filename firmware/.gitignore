@@ -4,3 +4,6 @@
 Cargo.lock
 target/
 .cargo-ok
+
+.cortex-debug.peripherals.state.json
+.cortex-debug.registers.state.json

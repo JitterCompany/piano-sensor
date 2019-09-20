@@ -9,12 +9,14 @@ extern crate panic_halt; // you can put a breakpoint on `rust_begin_unwind` to c
 
 use cortex_m::asm;
 use cortex_m_rt::entry;
+use cortex_m_semihosting::{hprintln};
 
 extern crate stm32f1xx_hal;
 
 #[entry]
 fn main() -> ! {
     asm::nop(); // To not have main optimize to abort in release mode, remove when you add code
+    hprintln!("Hello, rust world!").unwrap();
 
     loop {
         // your code goes here
