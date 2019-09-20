@@ -9,8 +9,12 @@ use cortex_m::asm;
 use cortex_m_rt::entry;
 
 #[macro_use]
+
+#[cfg(feature = "use_semihosting")]
 extern crate cortex_m_semihosting;
+#[cfg(feature = "use_semihosting")]
 use cortex_m_semihosting::{hprintln, hio};
+#[cfg(feature = "use_semihosting")]
 use core::fmt::Write;
 
 extern crate stm32f1xx_hal;
@@ -19,6 +23,7 @@ extern crate stm32f1xx_hal;
 fn main() -> ! {
     asm::nop(); // To not have main optimize to abort in release mode, remove when you add code
 
+    #[cfg(feature = "use_semihosting")]
     semihosting_print_example().ok();
 
     loop {
@@ -26,6 +31,7 @@ fn main() -> ! {
     }
 }
 
+#[cfg(feature = "use_semihosting")]
 fn semihosting_print_example() -> Result<(), core::fmt::Error> {
 
     hprintln!("Hello, rust world!").unwrap();

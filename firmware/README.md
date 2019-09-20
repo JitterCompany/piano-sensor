@@ -41,3 +41,10 @@ bobbin load --bin firmware
 ```
 
 Or using vscode: Run the debugger > `Build&Launch`
+
+## Run with semihosting
+
+```
+cargo run --features "use_semihosting"
+```
+
