@@ -1,4 +1,6 @@
-target extended-remote :3333
+
+#target extended-remote :3333
+target extended-remote | openocd -c "gdb_port pipe; log_output openocd.log" -f openocd.cfg
 
 # print demangled symbols
 set print asm-demangle on
