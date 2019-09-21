@@ -5,6 +5,7 @@
 extern crate panic_halt; // you can put a breakpoint on `rust_begin_unwind` to catch panics
 
 use cortex_m_rt::entry;
+use nb::block;
 
 #[cfg(feature = "use_semihosting")]
 #[macro_use]
@@ -15,15 +16,22 @@ use cortex_m_semihosting::{hprintln, hio};
 #[cfg(feature = "use_semihosting")]
 use core::fmt::Write;
 
-// extern crate stm32f1xx_hal;
+extern crate stm32f1xx_hal;
 use stm32f1xx_hal::{
     prelude::*, // auto import of most used stuff
     gpio::*, // gpio hal implementation for stm32f1xx
+    timer::Timer,
+    serial::{Config, Serial},
+    rcc::Clocks,
     pac::{self, interrupt, EXTI} // peripheral access crate (register access)
 };
-use embedded_hal::digital::v2::OutputPin;
-use core::{cell::RefCell, ops::DerefMut};
-use cortex_m::{interrupt::Mutex};
+
+extern crate embedded_hal;
+use embedded_hal::digital::v2::{InputPin, OutputPin};
+use embedded_hal::{serial, fmt};
+
+use core::{cell::RefCell, ops::DerefMut, cell::UnsafeCell};
+use cortex_m::{interrupt::Mutex, interrupt::CriticalSection};
 
 // Make external interrupt registers globally available
 static INT: Mutex<RefCell<Option<EXTI>>> = Mutex::new(RefCell::new(None));
@@ -31,31 +39,110 @@ static INT: Mutex<RefCell<Option<EXTI>>> = Mutex::new(RefCell::new(None));
 // Make our LED globally available
 static LED: Mutex<RefCell<Option<gpiob::PB12<Output<PushPull>>>>> = Mutex::new(RefCell::new(None));
 
+static CH_A: Mutex<RefCell<Option<gpioa::PA5<Input<PullUp>>>>> = Mutex::new(RefCell::new(None));
+static CH_B: Mutex<RefCell<Option<gpioa::PA10<Input<PullUp>>>>> = Mutex::new(RefCell::new(None));
+
+
+struct CSCounter(UnsafeCell<i32>);
+const CS_COUNTER_INIT: CSCounter = CSCounter(UnsafeCell::new(0));
+
+impl CSCounter {
+    pub fn reset(&self, _cs: &CriticalSection) {
+        // By requiring a CriticalSection be passed in, we know we must
+        // be operating inside a CriticalSection, and so can confidently
+        // use this unsafe block (required to call UnsafeCell::get).
+        unsafe { *self.0.get() = 0 };
+    }
+
+    pub fn increment(&self, _cs: &CriticalSection) {
+        unsafe { *self.0.get() += 1 };
+    }
+
+    pub fn decrement(&self, _cs: &CriticalSection) {
+        unsafe { *self.0.get() -= 1 };
+    }
+
+    pub fn get(&self) -> i32 {
+        unsafe { *self.0.get() }
+    }
+
+}
+
+// Required to allow static CSCounter. See explanation below.
+unsafe impl Sync for CSCounter {}
+
+// COUNTER is no longer `mut` as it uses interior mutability;
+// therefore it also no longer requires unsafe blocks to access.
+static COUNTER: CSCounter = CS_COUNTER_INIT;
+
+
+// fn init_clock() {
+//     use stm32::clock::*;
+//     use stm32::flash;
+
+//     let rcc = stm32::RCC();
+
+//     rcc.enable_hse();
+//     while !rcc.get_hse_ready() {}
+
+//     // use 8 MHz external oscillator
+//     // set PLL to 72 MHz (8 MHz * 9)
+//     rcc.set_pll_multiplier(PLLMultiplier::Mult9);
+//     rcc.set_pll_source(PLLSource::HighSpeedExternal);
+
+//     // set prescaler
+//     rcc.set_apb_1_prescaler(APBPrescaler::Div2);
+
+//     let flash = stm32::FLASH();
+//     flash.enable_prefetch();
+//     flash.set_latency(flash::FlashLatency::TwoWait);
+//     rcc.enable_pll();
+//     while !rcc.get_pll_ready() {}
+
+//     rcc.set_system_clock(SystemClockSwitch::PLLOutput);
+// }
 
 #[entry]
 fn main() -> ! {
-    #[cfg(feature = "use_semihosting")]
-    semihosting_print_example().ok();
+    // #[cfg(feature = "use_semihosting")]
+    // semihosting_print_example().ok();
 
     // Get access to the core peripherals from the cortex-m crate
-    // let cp = cortex_m::Peripherals::take().unwrap();
+    let cp = cortex_m::Peripherals::take().unwrap();
     // Get access to the device specific peripherals from the peripheral access crate
     let dp = pac::Peripherals::take().unwrap();
 
+    let mut flash = dp.FLASH.constrain();
+
     let mut rcc = dp.RCC.constrain();
+
+//.sysclk(72.mhz()).pclk1(32.mhz())
+    // let clocks: Clocks = rcc.cfgr.use_hse(8.mhz()).hclk(72.mhz()).sysclk(72.mhz()).freeze(&mut flash.acr);
+    let clocks: Clocks = rcc.cfgr.use_hse(8.mhz()).sysclk(72.mhz()).pclk1(36.mhz()).freeze(&mut flash.acr);
+    #[cfg(feature = "use_semihosting")] {
+        hprintln!("sysclk freq: {}", clocks.sysclk().0).unwrap();
+    }
+
+    // let clocks = rcc.cfgr.freeze(&mut flash.acr);
+
+
+    // configure clock to 72MHz
+    // rcc.cfgr.use_hse(72_000_000.hz());
+    // while !rcc.get_hse_ready() {}
+
     let mut gpiob = dp.GPIOB.split(&mut rcc.apb2);
 
     let mut led = gpiob.pb12.into_push_pull_output(&mut gpiob.crh);
 
     // turn on led (inverted logic)
-    led.set_low().unwrap();
+    led.set_high().unwrap();
 
 
     // input pin and interrupt setup
     // PA5 ChA, PA10 = ChB
     let mut gpioa = dp.GPIOA.split(&mut rcc.apb2);
-    let _pin_a5 = gpioa.pa0.into_pull_up_input(&mut gpioa.crl);
-    let _pin_a10 = gpioa.pa7.into_pull_up_input(&mut gpioa.crl);
+    let pin_a5 = gpioa.pa5.into_pull_up_input(&mut gpioa.crl);
+    let pin_a10 = gpioa.pa10.into_pull_up_input(&mut gpioa.crh);
 
 
     let exti = dp.EXTI;
@@ -78,18 +165,71 @@ fn main() -> ! {
         pac::NVIC::unmask(pac::Interrupt::EXTI9_5);
     }
 
+
+    let mut timer = Timer::syst(cp.SYST, 1000.hz(), clocks);
+
+    //USART2_TX PA2
+    //USART2_RX PA3
+    let tx = gpioa.pa2.into_alternate_push_pull(&mut gpioa.crl);
+    let rx = gpioa.pa3;
+
+
+    let mut afio = dp.AFIO.constrain(&mut rcc.apb2);
+
+    let serial = Serial::usart2(
+        dp.USART2,
+        (tx, rx),
+        &mut afio.mapr,
+        Config::default().baudrate(115200.bps()),
+        clocks,
+        &mut rcc.apb1,
+    );
+
+    let (mut tx, _) = serial.split();
+    let enter_r = b'\r';
+    let enter_n = b'\n';
+
+
     // Move control over LED and DELAY and EXTI into global mutexes
     cortex_m::interrupt::free(|cs| {
         *LED.borrow(cs).borrow_mut() = Some(led);
         *INT.borrow(cs).borrow_mut() = Some(exti);
+        *CH_A.borrow(cs).borrow_mut() = Some(pin_a5);
+        *CH_B.borrow(cs).borrow_mut() = Some(pin_a10);
     });
 
+    let splus = "counter = ";
+    let smin = "counter = -";
 
+    let mut prev_val: i32 = -1;
     loop {
         // your code goes here
+
+        block!(timer.wait()).unwrap();
+
+        let val: i32 = COUNTER.get();
+
+        if prev_val != val {
+            if val < 0 {
+                write_string(&mut tx, &smin);
+                print_int(&mut tx, -val as u32);
+            } else {
+                write_string(&mut tx, &splus);
+                print_int(&mut tx, val as u32);
+            }
+            block!(tx.write(enter_r)).ok();
+            block!(tx.write(enter_n)).ok();
+            prev_val = val;
+        }
+
+
+
     }
 }
 
+/**
+ *Ch A interrupt
+ */
 #[interrupt]
 fn EXTI9_5() {
     cortex_m::interrupt::free(|cs| {
@@ -100,6 +240,20 @@ fn EXTI9_5() {
             // Change the LED state on each interrupt.
             if let Some(ref mut led) = LED.borrow(cs).borrow_mut().deref_mut() {
                 led.toggle().unwrap();
+            }
+
+            if let Some(ref mut ch_a) = CH_A.borrow(cs).borrow_mut().deref_mut() {
+                if let Some(ref mut ch_b) = CH_B.borrow(cs).borrow_mut().deref_mut() {
+
+                    let a: bool = ch_a.is_high().unwrap();
+                    let b: bool = ch_b.is_high().unwrap();
+                    if a == b {
+                        COUNTER.decrement(cs);
+                    } else {
+                        COUNTER.increment(cs);
+                    }
+
+                }
             }
 
         }
@@ -117,6 +271,20 @@ fn EXTI15_10() {
             // Change the LED state on each interrupt.
             if let Some(ref mut led) = LED.borrow(cs).borrow_mut().deref_mut() {
                 led.toggle().unwrap();
+            }
+
+            if let Some(ref mut ch_a) = CH_A.borrow(cs).borrow_mut().deref_mut() {
+                if let Some(ref mut ch_b) = CH_B.borrow(cs).borrow_mut().deref_mut() {
+
+                    let a: bool = ch_a.is_high().unwrap();
+                    let b: bool = ch_b.is_high().unwrap();
+                    if a == b {
+                        COUNTER.increment(cs);
+                    } else {
+                        COUNTER.decrement(cs);
+                    }
+
+                }
             }
 
         }
@@ -150,3 +318,76 @@ fn semihosting_print_example() -> Result<(), core::fmt::Error> {
 
     Ok(())
 }
+
+
+pub fn print_int (tx: &mut impl serial::Write<u8>, i : u32) {
+    if i == 0 { block!(tx.write('0' as u8)).ok(); return; };
+
+    let mut i = i;
+    let mut s = [0 as u8; 10];
+    let mut j = 0;
+    while i != 0 {
+        let rem = (i % 10) as u8;
+        s[j] = '0' as u8 + rem;
+        j += 1;
+        i = i / 10;
+    }
+
+    for x in 0..j {
+        block!(tx.write(s[j-x-1])).ok();
+    }
+}
+
+fn write_string(tx: &mut impl serial::Write<u8>, s: &str) {
+    for a in s.chars() {
+        block!(tx.write(a as u8)).ok();
+    }
+}
+
+
+
+
+
+
+// fn enable_uart() {
+//     use stm32::gpio::*;
+//     use stm32::clock::Peripheral;
+
+//     let rcc = stm32::RCC();
+//     rcc.enable_peripheral(Peripheral::USART);
+
+//     // setup USART
+//     let usart1 = stm32::USART_1();
+//     usart1.set_baud(468, 12);
+//     //usart1.set_baud_calc(72000000, 9600);
+//     usart1.enable_transmitter();
+//     usart1.enable_receiver();
+
+//     usart1.enable();
+
+//     rcc.enable_peripheral(Peripheral::AlternateFunctionIO);
+//     rcc.enable_peripheral(Peripheral::IOPortA);
+
+//     let porta = stm32::PORT_A();
+//     // setup output potr
+//     porta.set_port_pin_mode(Pin::P9, PortPinMode::OutputMode50MHz);
+//     porta.set_port_pin_config(Pin::P9, PortPinConfig::AlternateFunctionOutputPushPull);
+//     // setup input port
+//     porta.set_port_pin_config(Pin::P10, PortPinConfig::FloatingInput);
+// }
+
+// fn uart_tx(ch : u8) {
+//     while !stm32::USART_1().get_transmit_empty() {};
+//     stm32::USART_1().send_data(ch);
+// }
+
+// fn print(s : &str) {
+//     for a in s.chars() {
+//         uart_tx(a as u8);
+//     }
+// }
+
+// fn println(s : &str) {
+//     print(s);
+//     uart_tx('\n' as u8);
+// }
