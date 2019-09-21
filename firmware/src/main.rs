@@ -158,6 +158,10 @@ fn main() -> ! {
         w.tr5().set_bit();
         w.tr10().set_bit()
     });
+    exti.rtsr.modify(|_, w| {
+        w.tr5().set_bit();
+        w.tr10().set_bit()
+    });
 
     // Enable the external interrupt in the NVIC.
     unsafe {
