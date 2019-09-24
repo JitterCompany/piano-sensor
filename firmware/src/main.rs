@@ -20,9 +20,8 @@ extern crate stm32f1xx_hal;
 use stm32f1xx_hal::{
     prelude::*, // auto import of most used stuff
     gpio::*, // gpio hal implementation for stm32f1xx
-    timer::Timer,
+    timer,
     serial::{Config, Serial},
-    rcc::Clocks,
     pac::{self, interrupt, EXTI} // peripheral access crate (register access)
 };
 
@@ -42,12 +41,14 @@ static LED: Mutex<RefCell<Option<gpiob::PB12<Output<PushPull>>>>> = Mutex::new(R
 static CH_A: Mutex<RefCell<Option<gpioa::PA5<Input<PullUp>>>>> = Mutex::new(RefCell::new(None));
 static CH_B: Mutex<RefCell<Option<gpioa::PA10<Input<PullUp>>>>> = Mutex::new(RefCell::new(None));
 
+static TIMER_UP: Mutex<RefCell<Option<timer::Timer<stm32f1xx_hal::pac::TIM1>>>> = Mutex::new(RefCell::new(None));
+
 
 struct CSCounter(UnsafeCell<i32>);
 const CS_COUNTER_INIT: CSCounter = CSCounter(UnsafeCell::new(0));
 
 impl CSCounter {
-    pub fn reset(&self, _cs: &CriticalSection) {
+    pub fn _reset(&self, _cs: &CriticalSection) {
         // By requiring a CriticalSection be passed in, we know we must
         // be operating inside a CriticalSection, and so can confidently
         // use this unsafe block (required to call UnsafeCell::get).
@@ -75,6 +76,7 @@ unsafe impl Sync for CSCounter {}
 // therefore it also no longer requires unsafe blocks to access.
 static COUNTER: CSCounter = CS_COUNTER_INIT;
 
+static TIME_MS: CSCounter = CS_COUNTER_INIT;
 
 #[entry]
 fn main() -> ! {
@@ -143,7 +145,15 @@ fn main() -> ! {
     }
 
 
-    let mut timer = Timer::syst(cp.SYST, 1000.hz(), clocks);
+    let mut timer = timer::Timer::syst(cp.SYST, 1000.hz(), clocks);
+    let mut tim1 = timer::Timer::tim1(dp.TIM1, 1.khz(), clocks, &mut rcc.apb2);
+
+    tim1.listen(timer::Event::Update);
+    tim1.clear_update_interrupt_flag();
+
+    unsafe {
+        pac::NVIC::unmask(pac::Interrupt::TIM1_UP);
+    }
 
     //USART2_TX PA2
     //USART2_RX PA3
@@ -162,31 +172,39 @@ fn main() -> ! {
         &mut rcc.apb1,
     );
 
-    let (mut tx, _) = serial.split();
-    let enter_r = b'\r';
-    let enter_n = b'\n';
-
-
     // Move control over LED and DELAY and EXTI into global mutexes
     cortex_m::interrupt::free(|cs| {
         *LED.borrow(cs).borrow_mut() = Some(led);
         *INT.borrow(cs).borrow_mut() = Some(exti);
         *CH_A.borrow(cs).borrow_mut() = Some(pin_a5);
         *CH_B.borrow(cs).borrow_mut() = Some(pin_a10);
+        *TIMER_UP.borrow(cs).borrow_mut() = Some(tim1);
     });
+
+    let (mut tx, _) = serial.split();
+    let enter_r = b'\r';
+    let enter_n = b'\n';
 
     let splus = "counter = ";
     let smin = "counter = -";
 
     let mut prev_val: i32 = -1;
+
     loop {
         // your code goes here
 
         block!(timer.wait()).unwrap();
 
+
         let val: i32 = COUNTER.get();
 
         if prev_val != val {
+            let time: i32 = TIME_MS.get();
+            print_int(&mut tx, time as u32);
+
+            let a = ": ";
+            write_string(&mut tx, &a);
+
             if val < 0 {
                 write_string(&mut tx, &smin);
                 print_int(&mut tx, -val as u32);
@@ -199,9 +217,19 @@ fn main() -> ! {
             prev_val = val;
         }
 
-
-
     }
+}
+
+
+#[interrupt]
+fn TIM1_UP() {
+    cortex_m::interrupt::free(|cs| {
+        if let Some(ref mut tim1) = TIMER_UP.borrow(cs).borrow_mut().deref_mut() {
+            tim1.clear_update_interrupt_flag();
+            // count 1 millisecond
+            TIME_MS.increment(cs);
+        }
+    });
 }
 
 /**
