@@ -32,10 +32,10 @@ use embedded_hal::{serial};
 use core::{cell::RefCell, ops::DerefMut, cell::UnsafeCell};
 use cortex_m::{interrupt::Mutex, interrupt::CriticalSection};
 
-extern crate heapless; // v0.4.x
-use heapless::Vec;
-use heapless::consts::*;
 
+
+mod encoder;
+use encoder::Encoder;
 
 
 // Make external interrupt registers globally available
@@ -83,58 +83,6 @@ unsafe impl Sync for CSCounter {}
 static COUNTER: CSCounter = CS_COUNTER_INIT;
 
 static TIME_MS: CSCounter = CS_COUNTER_INIT;
-
-struct EncoderPair {
-    time: u32,
-    pos:  i32
-}
-
-struct Encoder {
-    data: Vec<EncoderPair, U200>,
-    ready: bool,
-    start: u32,
-    _prev_val: i32
-}
-
-impl Encoder {
-    // pub fn new()
-    pub fn new() -> Self {
-        Self {
-            data: Vec::new(),
-            ready: false,
-            start: 0,
-            _prev_val: 0
-        }
-    }
-
-    pub fn reset(&mut self) {
-        self.data = Vec::new();
-        self.ready = false;
-        self.start = 0;
-        self._prev_val = 0;
-    }
-
-    pub fn new_value(&mut self, timestamp: u32, position: i32) {
-        if self.ready {
-            return
-        }
-        if position != self._prev_val {
-            if self.start == 0 {
-                self.start = timestamp;
-            }
-            self.data.push(EncoderPair{time: timestamp - self.start, pos: position}).ok();
-            self._prev_val = position;
-        }
-
-        if self.start != 0 && position == 0 {
-            self.ready = true;
-        }
-    }
-
-    pub fn ready(&mut self) -> bool { self.ready }
-
-    pub fn get(&mut self) -> &Vec<EncoderPair, U200> { &self.data }
-}
 
 
 static ENCODER: Mutex<RefCell<Option<Encoder>>> = Mutex::new(RefCell::new(None));
