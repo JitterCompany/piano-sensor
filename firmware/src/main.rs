@@ -32,6 +32,12 @@ use embedded_hal::{serial};
 use core::{cell::RefCell, ops::DerefMut, cell::UnsafeCell};
 use cortex_m::{interrupt::Mutex, interrupt::CriticalSection};
 
+extern crate heapless; // v0.4.x
+use heapless::Vec;
+use heapless::consts::*;
+
+
+
 // Make external interrupt registers globally available
 static INT: Mutex<RefCell<Option<EXTI>>> = Mutex::new(RefCell::new(None));
 
@@ -78,11 +84,66 @@ static COUNTER: CSCounter = CS_COUNTER_INIT;
 
 static TIME_MS: CSCounter = CS_COUNTER_INIT;
 
+struct EncoderPair {
+    time: u32,
+    pos:  i32
+}
+
+struct Encoder {
+    data: Vec<EncoderPair, U200>,
+    ready: bool,
+    start: u32,
+    _prev_val: i32
+}
+
+impl Encoder {
+    // pub fn new()
+    pub fn new() -> Self {
+        Self {
+            data: Vec::new(),
+            ready: false,
+            start: 0,
+            _prev_val: 0
+        }
+    }
+
+    pub fn reset(&mut self) {
+        self.data = Vec::new();
+        self.ready = false;
+        self.start = 0;
+        self._prev_val = 0;
+    }
+
+    pub fn new_value(&mut self, timestamp: u32, position: i32) {
+        if self.ready {
+            return
+        }
+        if position != self._prev_val {
+            if self.start == 0 {
+                self.start = timestamp;
+            }
+            self.data.push(EncoderPair{time: timestamp - self.start, pos: position}).ok();
+            self._prev_val = position;
+        }
+
+        if self.start != 0 && position == 0 {
+            self.ready = true;
+        }
+    }
+
+    pub fn ready(&mut self) -> bool { self.ready }
+
+    pub fn get(&mut self) -> &Vec<EncoderPair, U200> { &self.data }
+}
+
+
+static ENCODER: Mutex<RefCell<Option<Encoder>>> = Mutex::new(RefCell::new(None));
+
 #[entry]
 fn main() -> ! {
     // #[cfg(feature = "use_semihosting")]
     // semihosting_print_example().ok();
-
+    let encoder = Encoder::new();
     // Get access to the core peripherals from the cortex-m crate
     let cp = cortex_m::Peripherals::take().unwrap();
     // Get access to the device specific peripherals from the peripheral access crate
@@ -93,17 +154,11 @@ fn main() -> ! {
     let mut rcc = dp.RCC.constrain();
 
     // configure clocks
-    // let clocks: Clocks = rcc.cfgr.use_hse(8.mhz()).sysclk(72.mhz()).pclk1(36.mhz()).freeze(&mut flash.acr);
-    let clocks = rcc.cfgr.freeze(&mut flash.acr);
+    let clocks = rcc.cfgr.use_hse(8.mhz()).sysclk(72.mhz()).pclk1(36.mhz()).freeze(&mut flash.acr);
+    // let clocks = rcc.cfgr.freeze(&mut flash.acr);
     #[cfg(feature = "use_semihosting")] {
         hprintln!("sysclk freq: {}", clocks.sysclk().0).unwrap();
     }
-
-
-
-    // configure clock to 72MHz
-    // rcc.cfgr.use_hse(72_000_000.hz());
-    // while !rcc.get_hse_ready() {}
 
     let mut gpiob = dp.GPIOB.split(&mut rcc.apb2);
 
@@ -179,11 +234,14 @@ fn main() -> ! {
         *CH_A.borrow(cs).borrow_mut() = Some(pin_a5);
         *CH_B.borrow(cs).borrow_mut() = Some(pin_a10);
         *TIMER_UP.borrow(cs).borrow_mut() = Some(tim1);
+        *ENCODER.borrow(cs).borrow_mut() = Some(encoder);
     });
 
     let (mut tx, _) = serial.split();
     let enter_r = b'\r';
     let enter_n = b'\n';
+    let comma = b',';
+    let ready = "ready:\r\n";
 
     let splus = "counter = ";
     let smin = "counter = -";
@@ -191,7 +249,6 @@ fn main() -> ! {
     let mut prev_val: i32 = -1;
 
     loop {
-        // your code goes here
 
         block!(timer.wait()).unwrap();
 
@@ -216,6 +273,25 @@ fn main() -> ! {
             block!(tx.write(enter_n)).ok();
             prev_val = val;
         }
+
+        cortex_m::interrupt::free(|cs| {
+            if let Some(ref mut encoder) = ENCODER.borrow(cs).borrow_mut().deref_mut() {
+                if encoder.ready() {
+                    let data = encoder.get();
+                    write_string(&mut tx, &ready);
+                    for x in data {
+                        print_int(&mut tx, x.time as u32);
+                        block!(tx.write(comma)).ok();
+                        print_int(&mut tx, -x.pos as u32);
+                        block!(tx.write(enter_r)).ok();
+                        block!(tx.write(enter_n)).ok();
+                    }
+                    encoder.reset();
+
+                }
+            }
+        });
+
 
     }
 }
@@ -257,6 +333,11 @@ fn EXTI9_5() {
                     } else {
                         COUNTER.increment(cs);
                     }
+
+                    if let Some(ref mut encoder) = ENCODER.borrow(cs).borrow_mut().deref_mut() {
+                        encoder.new_value(TIME_MS.get() as u32, COUNTER.get());
+                    }
+
 
                 }
             }
