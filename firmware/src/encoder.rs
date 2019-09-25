@@ -3,26 +3,44 @@ extern crate heapless;
 use heapless::Vec;
 use heapless::consts::*;
 
+extern crate embedded_hal;
+use embedded_hal::digital::v2::InputPin;
+
+
 pub struct EncoderPair {
     pub time: u32,
     pub pos:  i32
 }
 
-pub struct Encoder {
-    data: Vec<EncoderPair, U200>,
+pub struct Encoder<CHA: InputPin, CHB: InputPin> {
+    data: Vec<EncoderPair, U300>,
     ready: bool,
     start: u32,
-    _prev_val: i32
+    _prev_val: i32,
+    channel_a: CHA,
+    channel_b: CHB,
+    position: i32
 }
 
-impl Encoder {
-    // pub fn new()
-    pub fn new() -> Self {
+use void::Void;
+
+pub enum Channel {
+    A,
+    B
+}
+
+
+impl<CHA: InputPin<Error = Void>, CHB: InputPin<Error = Void>> Encoder<CHA, CHB> {
+
+    pub fn new(ch_a: CHA, ch_b: CHB) -> Self {
         Self {
             data: Vec::new(),
             ready: false,
             start: 0,
-            _prev_val: 0
+            _prev_val: 0,
+            channel_a: ch_a,
+            channel_b: ch_b,
+            position: 0
         }
     }
 
@@ -33,7 +51,36 @@ impl Encoder {
         self._prev_val = 0;
     }
 
-    pub fn new_value(&mut self, timestamp: u32, position: i32) {
+    pub fn update(&mut self, channel: Channel, timestamp: u32) {
+        let a: bool = self.channel_a.is_high().unwrap();
+        let b: bool = self.channel_b.is_high().unwrap();
+        match channel {
+            Channel::A => {
+                if a == b {
+                    self.position -= 1;
+                    // COUNTER.decrement(cs);
+                } else {
+                    self.position += 1;
+                    // COUNTER.increment(cs);
+                }
+            },
+            Channel::B => {
+                if a == b {
+                    self.position += 1;
+                    // COUNTER.decrement(cs);
+                } else {
+                    self.position -= 1;
+                    // COUNTER.increment(cs);
+                }
+            }
+        }
+
+        // safe datapoint
+        self.new_value(timestamp, self.position);
+
+    }
+
+    fn new_value(&mut self, timestamp: u32, position: i32) {
         if self.ready {
             return
         }
@@ -52,5 +99,5 @@ impl Encoder {
 
     pub fn ready(&mut self) -> bool { self.ready }
 
-    pub fn get(&mut self) -> &Vec<EncoderPair, U200> { &self.data }
+    pub fn get(&mut self) -> &Vec<EncoderPair, U300> { &self.data }
 }
