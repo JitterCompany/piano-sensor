@@ -13,7 +13,7 @@ pub struct EncoderPair {
 }
 
 pub struct Encoder<CHA: InputPin, CHB: InputPin> {
-    data: Vec<EncoderPair, U300>,
+    data: Vec<EncoderPair, U200>,
     ready: bool,
     start: u32,
     _prev_val: i32,
@@ -99,5 +99,5 @@ impl<CHA: InputPin<Error = Void>, CHB: InputPin<Error = Void>> Encoder<CHA, CHB>
 
     pub fn ready(&mut self) -> bool { self.ready }
 
-    pub fn get(&mut self) -> &Vec<EncoderPair, U300> { &self.data }
+    pub fn get(&mut self) -> &Vec<EncoderPair, U200> { &self.data }
 }

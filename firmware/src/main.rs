@@ -90,12 +90,13 @@ fn main() -> ! {
 
     // configure clocks
     let clocks = rcc.cfgr.use_hse(8.mhz()).sysclk(72.mhz()).pclk1(36.mhz()).freeze(&mut flash.acr);
-    // let clocks = rcc.cfgr.freeze(&mut flash.acr);
     #[cfg(feature = "use_semihosting")] {
         hprintln!("sysclk freq: {}", clocks.sysclk().0).unwrap();
     }
 
+    let mut gpioa = dp.GPIOA.split(&mut rcc.apb2);
     let mut gpiob = dp.GPIOB.split(&mut rcc.apb2);
+    let mut gpioc = dp.GPIOC.split(&mut rcc.apb2);
 
     let mut led = gpiob.pb12.into_push_pull_output(&mut gpiob.crh);
 
@@ -105,37 +106,90 @@ fn main() -> ! {
 
     // input pin and interrupt setup
     // PA5 ChA, PA10 = ChB
-    let mut gpioa = dp.GPIOA.split(&mut rcc.apb2);
     let pin_a5 = gpioa.pa5.into_pull_up_input(&mut gpioa.crl);
+    let pin_a6 = gpioa.pa6.into_pull_up_input(&mut gpioa.crl);
+    let pin_a7 = gpioa.pa7.into_pull_up_input(&mut gpioa.crl);
+    let pin_a8 = gpioa.pa8.into_pull_up_input(&mut gpioa.crh);
+    let pin_a9 = gpioa.pa9.into_pull_up_input(&mut gpioa.crh);
     let pin_a10 = gpioa.pa10.into_pull_up_input(&mut gpioa.crh);
+    let pin_a11 = gpioa.pa11.into_pull_up_input(&mut gpioa.crh);
+    let pin_a12 = gpioa.pa12.into_pull_up_input(&mut gpioa.crh);
+    let pin_b15 = gpiob.pb15.into_pull_up_input(&mut gpiob.crh);
+    let pin_c13 = gpioc.pc13.into_pull_up_input(&mut gpioc.crh);
 
-    let encoder = Encoder::new(pin_a5, pin_a10);
+    let mut afio = dp.AFIO.constrain(&mut rcc.apb2);
 
+    // configure correct pins for external interrups
+    afio.exticr2.exticr2().modify(|_,w| unsafe {
+        w.exti5().bits(0b0000);  //PA5 1A
+        w.exti6().bits(0b0000);  //PA6 2A
+        w.exti7().bits(0b0000)   //PA7 3A
+    });
+    afio.exticr3.exticr3().modify(|_,w| unsafe {
+        w.exti8().bits(0b0000);  //PA8 4A
+        w.exti9().bits(0b0000);  //PA9 5A
+        w.exti10().bits(0b0000); //PA10 1B
+        w.exti11().bits(0b0000)  //PA11 2B
+    });
+     afio.exticr4.exticr4().modify(|_,w| unsafe {
+        w.exti12().bits(0b0000); //PA12 3B
+        w.exti15().bits(0b0001); //PB15 4B
+        w.exti13().bits(0b0010)  //PC13 5B
+    });
+
+    let encoder1 = Encoder::new(pin_a5, pin_a10);
+    let encoder2 = Encoder::new(pin_a6, pin_a11);
+    let encoder3 = Encoder::new(pin_a7, pin_a12);
+    let encoder4 = Encoder::new(pin_a8, pin_b15);
+    let encoder5 = Encoder::new(pin_a9, pin_c13);
 
     let exti = dp.EXTI;
 
-    // Set interrupt request masks
+    // Set interrupt request masks; enable interrupts
     exti.imr.modify(|_, w| {
         w.mr5().set_bit();
-        w.mr10().set_bit()
+        w.mr6().set_bit();
+        w.mr7().set_bit();
+        w.mr8().set_bit();
+        w.mr9().set_bit();
+        w.mr10().set_bit();
+        w.mr11().set_bit();
+        w.mr12().set_bit();
+        w.mr15().set_bit();
+        w.mr13().set_bit()
     });
 
-    // Set interrupt falling triggers
+    // Set interrupt falling and rising edge triggers
     exti.ftsr.modify(|_, w| {
         w.tr5().set_bit();
-        w.tr10().set_bit()
+        w.tr6().set_bit();
+        w.tr7().set_bit();
+        w.tr8().set_bit();
+        w.tr9().set_bit();
+        w.tr10().set_bit();
+        w.tr11().set_bit();
+        w.tr12().set_bit();
+        w.tr15().set_bit();
+        w.tr13().set_bit()
     });
     exti.rtsr.modify(|_, w| {
         w.tr5().set_bit();
-        w.tr10().set_bit()
+        w.tr6().set_bit();
+        w.tr7().set_bit();
+        w.tr8().set_bit();
+        w.tr9().set_bit();
+        w.tr10().set_bit();
+        w.tr11().set_bit();
+        w.tr12().set_bit();
+        w.tr15().set_bit();
+        w.tr13().set_bit()
     });
 
-    // Enable the external interrupt in the NVIC.
+    // Enable the external interrupts for these lines in the NVIC.
     unsafe {
         pac::NVIC::unmask(pac::Interrupt::EXTI15_10);
         pac::NVIC::unmask(pac::Interrupt::EXTI9_5);
     }
-
 
     let mut timer = timer::Timer::syst(cp.SYST, 1000.hz(), clocks);
     let mut tim1 = timer::Timer::tim1(dp.TIM1, 1.khz(), clocks, &mut rcc.apb2);
@@ -151,15 +205,10 @@ fn main() -> ! {
         nvic.set_priority(pac::Interrupt::EXTI9_5, 32); // prio 1
     }
 
-
-
     //USART2_TX PA2
     //USART2_RX PA3
     let tx = gpioa.pa2.into_alternate_push_pull(&mut gpioa.crl);
     let rx = gpioa.pa3;
-
-
-    let mut afio = dp.AFIO.constrain(&mut rcc.apb2);
 
     let serial = Serial::usart2(
         dp.USART2,
@@ -177,7 +226,7 @@ fn main() -> ! {
         *LED.borrow(cs).borrow_mut() = Some(led);
         *INT.borrow(cs).borrow_mut() = Some(exti);
         *TIMER_UP.borrow(cs).borrow_mut() = Some(tim1);
-        *ENCODER.borrow(cs).borrow_mut() = Some(encoder);
+        *ENCODER.borrow(cs).borrow_mut() = Some(encoder1);
     });
 
     let (tx, _) = serial.split();
@@ -186,7 +235,7 @@ fn main() -> ! {
     let mut tx = FormatTx {
         tx: tx
     };
-    writeln!(tx, "let's start! {}!\r", 12).unwrap();
+    writeln!(tx, "let's start! {}!", 12).unwrap();
 
     loop {
 
@@ -197,7 +246,7 @@ fn main() -> ! {
                 if encoder.ready() {
                     let data = encoder.get();
                     for x in data {
-                        writeln!(tx, "{}: {}\r", x.time, x.pos).unwrap();
+                        writeln!(tx, "{}: {}", x.time, x.pos).unwrap();
                     }
                     encoder.reset();
 
