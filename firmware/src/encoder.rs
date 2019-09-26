@@ -51,10 +51,10 @@ impl<CHA: InputPin<Error = Void>, CHB: InputPin<Error = Void>> Encoder<CHA, CHB>
         self._prev_val = 0;
     }
 
-    pub fn update(&mut self, channel: Channel, timestamp: u32) {
+    pub fn update(&mut self, channel: &Channel, timestamp: u32) {
         let a: bool = self.channel_a.is_high().unwrap();
         let b: bool = self.channel_b.is_high().unwrap();
-        match channel {
+        match *channel {
             Channel::A => {
                 if a == b {
                     self.position -= 1;
@@ -100,4 +100,14 @@ impl<CHA: InputPin<Error = Void>, CHB: InputPin<Error = Void>> Encoder<CHA, CHB>
     pub fn ready(&mut self) -> bool { self.ready }
 
     pub fn get(&mut self) -> &Vec<EncoderPair, U200> { &self.data }
+
 }
+
+// impl<CHA: InputPin<Error = Void>, CHB: InputPin<Error = Void>> EncoderTrait for Encoder<CHA, CHB> {
+
+
+
+// }
+
+// Required to allow static CSCounter. See explanation below.
+// unsafe impl<CHA: InputPin<Error = Void>, CHB: InputPin<Error = Void>>  Sync for Encoder<CHA, CHB> {}
