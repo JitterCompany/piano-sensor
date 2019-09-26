@@ -18,6 +18,7 @@ impl<T: PrimInt+AddAssign+SubAssign> CSCounter<T> {
         unsafe { *self.0.get() += T::one() };
     }
 
+    #[allow(dead_code)]
     pub fn decrement(&self, _cs: &CriticalSection) {
         unsafe { *self.0.get() -= T::one() };
     }

@@ -14,7 +14,6 @@ extern crate cortex_m_semihosting;
 #[cfg(feature = "use_semihosting")]
 use cortex_m_semihosting::{hprintln, hio};
 #[cfg(feature = "use_semihosting")]
-use core::fmt::Write;
 
 extern crate stm32f1xx_hal;
 use stm32f1xx_hal::{
@@ -22,12 +21,11 @@ use stm32f1xx_hal::{
     gpio::*, // gpio hal implementation for stm32f1xx
     timer,
     serial::{Config, Serial},
-    pac::{self, interrupt, EXTI} // peripheral access crate (register access)
+    pac::{self, interrupt, EXTI, USART2} // peripheral access crate (register access)
 };
 
 extern crate embedded_hal;
 use embedded_hal::digital::v2::{OutputPin};
-use embedded_hal::{serial};
 
 use core::{cell::RefCell, ops::DerefMut, cell::UnsafeCell};
 use cortex_m::{interrupt::Mutex};
@@ -37,6 +35,23 @@ use encoder::{Encoder, Channel};
 
 mod counter;
 use counter::CSCounter;
+
+
+// workaround for issue https://github.com/stm32-rs/stm32f1xx-hal/issues/110 in stm32f1xx-hal
+use core::fmt;
+use::core::fmt::*;
+struct FormatTx {
+    tx :  stm32f1xx_hal::serial::Tx<USART2>,
+}
+
+impl fmt::Write for FormatTx {
+    fn write_str(&mut self, s: &str) -> core::fmt::Result {
+        s.as_bytes()
+            .iter()
+            .try_for_each(|c| nb::block!(self.tx.write(*c)))
+            .map_err(|_| core::fmt::Error)
+    }
+}
 
 
 // Make external interrupt registers globally available
@@ -56,6 +71,9 @@ static ENCODER: Mutex<RefCell<Option<
         gpioa::PA5<Input<PullUp>>,
         gpioa::PA10<Input<PullUp>>
         >>>> = Mutex::new(RefCell::new(None));
+
+
+
 
 #[entry]
 fn main() -> ! {
@@ -162,49 +180,24 @@ fn main() -> ! {
         *ENCODER.borrow(cs).borrow_mut() = Some(encoder);
     });
 
-    let (mut tx, _) = serial.split();
-    let enter_r = b'\r';
-    let enter_n = b'\n';
-    let comma = b',';
-    let ready = "ready:\r\n";
+    let (tx, _) = serial.split();
 
-    let splus = "counter = ";
-    let smin = "counter = -";
-
-    let mut prev_val: i32 = -1;
+    block!(timer.wait()).unwrap();
+    let mut tx = FormatTx {
+        tx: tx
+    };
+    writeln!(tx, "let's start! {}!\r", 12).unwrap();
 
     loop {
 
         block!(timer.wait()).unwrap();
 
-
-        // let val: i32 = COUNTER.get();
-
-        // if prev_val != val {
-
-        //     if val < 0 {
-        //         write_string(&mut tx, &smin);
-        //         print_int(&mut tx, -val as u32);
-        //     } else {
-        //         write_string(&mut tx, &splus);
-        //         print_int(&mut tx, val as u32);
-        //     }
-        //     block!(tx.write(enter_r)).ok();
-        //     block!(tx.write(enter_n)).ok();
-        //     prev_val = val;
-        // }
-
         cortex_m::interrupt::free(|cs| {
             if let Some(ref mut encoder) = ENCODER.borrow(cs).borrow_mut().deref_mut() {
                 if encoder.ready() {
-                    write_string(&mut tx, &ready);
                     let data = encoder.get();
                     for x in data {
-                        print_int(&mut tx, x.time as u32);
-                        block!(tx.write(comma)).ok();
-                        print_int(&mut tx, -x.pos as u32);
-                        block!(tx.write(enter_r)).ok();
-                        block!(tx.write(enter_n)).ok();
+                        writeln!(tx, "{}: {}\r", x.time, x.pos).unwrap();
                     }
                     encoder.reset();
 
@@ -215,6 +208,8 @@ fn main() -> ! {
 
     }
 }
+
+
 
 
 #[interrupt]
@@ -260,7 +255,7 @@ fn EXTI15_10() {
         if let Some(ref mut exti) = INT.borrow(cs).borrow_mut().deref_mut() {
             // Clear the interrupt flag.
             exti.pr.write(|w| w.pr10().set_bit());
-            let pr = exti.pr.read();
+            let _pr = exti.pr.read();
 
             // Change the LED state on each interrupt.
             if let Some(ref mut led) = LED.borrow(cs).borrow_mut().deref_mut() {
@@ -300,29 +295,4 @@ fn semihosting_print_example() -> Result<(), core::fmt::Error> {
     write!(stdout, "{} on embedded is #{}!\n", language, ranking)?;
 
     Ok(())
-}
-
-
-pub fn print_int (tx: &mut impl serial::Write<u8>, i : u32) {
-    if i == 0 { block!(tx.write('0' as u8)).ok(); return; };
-
-    let mut i = i;
-    let mut s = [0 as u8; 10];
-    let mut j = 0;
-    while i != 0 {
-        let rem = (i % 10) as u8;
-        s[j] = '0' as u8 + rem;
-        j += 1;
-        i = i / 10;
-    }
-
-    for x in 0..j {
-        block!(tx.write(s[j-x-1])).ok();
-    }
-}
-
-fn write_string(tx: &mut impl serial::Write<u8>, s: &str) {
-    for a in s.chars() {
-        block!(tx.write(a as u8)).ok();
-    }
 }
