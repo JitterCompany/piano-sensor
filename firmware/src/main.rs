@@ -13,7 +13,7 @@ use nb::block;
 extern crate cortex_m_semihosting;
 #[cfg(feature = "use_semihosting")]
 use cortex_m_semihosting::{hprintln, hio};
-#[cfg(feature = "use_semihosting")]
+
 
 extern crate stm32f1xx_hal;
 use stm32f1xx_hal::{
@@ -99,6 +99,7 @@ static ENCODER5: Mutex<RefCell<Option<Encoder<
         gpioc::PC13<Input<PullUp>>
         >>>> = Mutex::new(RefCell::new(None));
 
+
 #[entry]
 fn main() -> ! {
     // #[cfg(feature = "use_semihosting")]
@@ -161,11 +162,6 @@ fn main() -> ! {
         w.exti13().bits(0b0010)  //PC13 5B
     });
 
-    let encoder1 = Encoder::new(pin_a5, pin_a10); // exti5 and exti10
-    let encoder2 = Encoder::new(pin_a6, pin_a11); // exti6 and exti11
-    // let encoder3 = Encoder::new(pin_a7, pin_a12); // exti7 and exti12
-    // let encoder4 = Encoder::new(pin_a8, pin_b15); // exti8 and exti15
-    // let encoder5 = Encoder::new(pin_a9, pin_c13); // exti9 and exti13
 
 
     //A bits 5,6,7,8,9
@@ -248,17 +244,36 @@ fn main() -> ! {
     );
 
 
+    // let encoder1 = Encoder::new(pin_a5, pin_a10); // exti5 and exti10
+    // let encoder2 = Encoder::new(pin_a6, pin_a11); // exti6 and exti11
+    // let encoder3 = Encoder::new(pin_a7, pin_a12); // exti7 and exti12
+    // let encoder4 = Encoder::new(pin_a8, pin_b15); // exti8 and exti15
+    // let encoder5 = Encoder::new(pin_a9, pin_c13); // exti9 and exti13
+
 
     // Move control over LED and DELAY and EXTI into global mutexes
     cortex_m::interrupt::free(|cs| {
         *LED.borrow(cs).borrow_mut() = Some(led);
         *INT.borrow(cs).borrow_mut() = Some(exti);
         *TIMER_UP.borrow(cs).borrow_mut() = Some(tim1);
-        *ENCODER1.borrow(cs).borrow_mut() = Some(encoder1);
-        *ENCODER2.borrow(cs).borrow_mut() = Some(encoder2);
+        // *ENCODER1.borrow(cs).borrow_mut() = Some(encoder1);
+        // *ENCODER2.borrow(cs).borrow_mut() = Some(encoder2);
         // *ENCODER3.borrow(cs).borrow_mut() = Some(encoder3);
         // *ENCODER4.borrow(cs).borrow_mut() = Some(encoder4);
         // *ENCODER5.borrow(cs).borrow_mut() = Some(encoder5);
+
+        *ENCODER1.borrow(cs).borrow_mut() = Some(Encoder::new(pin_a5, pin_a10));
+        *ENCODER2.borrow(cs).borrow_mut() = Some(Encoder::new(pin_a6, pin_a11));
+        *ENCODER3.borrow(cs).borrow_mut() = Some(Encoder::new(pin_a7, pin_a12));
+        *ENCODER4.borrow(cs).borrow_mut() = Some(Encoder::new(pin_a8, pin_b15));
+        *ENCODER5.borrow(cs).borrow_mut() = Some(Encoder::new(pin_a9, pin_c13));
+
+
+    //     let encoder1 = Encoder::new(pin_a5, pin_a10); // exti5 and exti10
+    // let encoder2 = Encoder::new(pin_a6, pin_a11); // exti6 and exti11
+    // // let encoder3 = Encoder::new(pin_a7, pin_a12); // exti7 and exti12
+    // let encoder4 = Encoder::new(pin_a8, pin_b15); // exti8 and exti15
+    // let encoder5 = Encoder::new(pin_a9, pin_c13); // exti9 and exti13
     });
 
     let (tx, _) = serial.split();
@@ -278,7 +293,9 @@ fn main() -> ! {
                 if encoder.ready() {
                     let data = encoder.get();
                     for x in data {
-                        writeln!(tx, "{}: {}", x.time, x.pos).unwrap();
+                        unsafe {
+                            writeln!(tx, "{}: {}", x.time, x.pos).unwrap();
+                        }
                     }
                     encoder.reset();
 
@@ -309,104 +326,15 @@ fn TIM1_UP() {
  */
 #[interrupt]
 fn EXTI9_5() {
-
     encoder_isr(Channel::A);
-    // cortex_m::interrupt::free(|cs| {
-    //     if let Some(ref mut exti) = INT.borrow(cs).borrow_mut().deref_mut() {
-    //         // Clear the interrupt flag.
-    //         exti.pr.modify(|_, w| w.pr5().set_bit());
-
-    //         // Change the LED state on each interrupt.
-    //         if let Some(ref mut led) = LED.borrow(cs).borrow_mut().deref_mut() {
-    //             led.toggle().unwrap();
-    //         }
-
-    //         if let Some(ref mut encoder) = ENCODER.borrow(cs).borrow_mut().deref_mut() {
-    //             encoder.update(Channel::A, TIME_MS.get() as u32);
-    //         }
-    //     }
-    // });
 }
-
-
-    // let encoder1 = Encoder::new(pin_a5, pin_a10); // exti5 and exti10
-    // let encoder2 = Encoder::new(pin_a6, pin_a11); // exti6 and exti11
-    // let encoder3 = Encoder::new(pin_a7, pin_a12); // exti7 and exti12
-    // let encoder4 = Encoder::new(pin_a8, pin_b15); // exti8 and exti15
-    // let encoder5 = Encoder::new(pin_a9, pin_c13); // exti9 and exti13
 
 /**
  *Ch B interrupt
  */
 #[interrupt]
 fn EXTI15_10() {
-
     encoder_isr(Channel::B);
-    // cortex_m::interrupt::free(|cs| {
-    //     if let Some(ref mut exti) = INT.borrow(cs).borrow_mut().deref_mut() {
-
-    //         let pr = exti.pr.read();
-
-    //         let i = pr.pr5().bit_is_set();
-
-    //         if pr.pr5().bit_is_set() || pr.pr10().bit_is_set() {
-    //             // Clear the interrupt flagw.
-    //             exti.pr.write(|w| {
-    //                 w.pr5().set_bit();
-    //                 w.pr10().set_bit()
-    //             });
-    //             if let Some(ref mut encoder) = ENCODER1.borrow(cs).borrow_mut().deref_mut() {
-    //                 encoder.update(Channel::B, TIME_MS.get() as u32);
-    //             }
-    //         }
-    //         if pr.pr6().bit_is_set() || pr.pr11().bit_is_set() {
-    //             // Clear the interrupt flagw.
-    //             exti.pr.write(|w| {
-    //                 w.pr6().set_bit();
-    //                 w.pr11().set_bit()
-    //             });
-    //             if let Some(ref mut encoder) = ENCODER2.borrow(cs).borrow_mut().deref_mut() {
-    //                 encoder.update(Channel::B, TIME_MS.get() as u32);
-    //             }
-    //         }
-    //         if pr.pr7().bit_is_set() || pr.pr12().bit_is_set() {
-    //             // Clear the interrupt flagw.
-    //             exti.pr.write(|w| {
-    //                 w.pr7().set_bit();
-    //                 w.pr12().set_bit()
-    //             });
-    //             if let Some(ref mut encoder) = ENCODER3.borrow(cs).borrow_mut().deref_mut() {
-    //                 encoder.update(Channel::B, TIME_MS.get() as u32);
-    //             }
-    //         }
-    //         if pr.pr8().bit_is_set() || pr.pr15().bit_is_set() {
-    //             // Clear the interrupt flagw.
-    //             exti.pr.write(|w| {
-    //                 w.pr8().set_bit();
-    //                 w.pr15().set_bit()
-    //             });
-    //             if let Some(ref mut encoder) = ENCODER4.borrow(cs).borrow_mut().deref_mut() {
-    //                 encoder.update(Channel::B, TIME_MS.get() as u32);
-    //             }
-    //         }
-    //         if pr.pr9().bit_is_set() || pr.pr13().bit_is_set() {
-    //             // Clear the interrupt flagw.
-    //             exti.pr.write(|w| {
-    //                 w.pr9().set_bit();
-    //                 w.pr13().set_bit()
-    //             });
-    //             if let Some(ref mut encoder) = ENCODER5.borrow(cs).borrow_mut().deref_mut() {
-    //                 encoder.update(Channel::B, TIME_MS.get() as u32);
-    //             }
-    //         }
-
-    //         // Change the LED state on each interrupt.
-    //         if let Some(ref mut led) = LED.borrow(cs).borrow_mut().deref_mut() {
-    //             led.toggle().unwrap();
-    //         }
-
-    //     }
-    // });
 }
 
 fn encoder_isr(channel: Channel) {
@@ -414,8 +342,6 @@ fn encoder_isr(channel: Channel) {
         if let Some(ref mut exti) = INT.borrow(cs).borrow_mut().deref_mut() {
 
             let pr = exti.pr.read();
-
-            let i = pr.pr5().bit_is_set();
 
             if pr.pr5().bit_is_set() || pr.pr10().bit_is_set() {
                 // Clear the interrupt flagw.

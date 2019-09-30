@@ -6,20 +6,27 @@ use heapless::consts::*;
 extern crate embedded_hal;
 use embedded_hal::digital::v2::InputPin;
 
-
+#[repr(packed)]
 pub struct EncoderPair {
     pub time: u32,
-    pub pos:  i32
+    pub pos:  i16
 }
 
+impl EncoderPair {
+    pub fn get_time(&mut self) -> u32 { self.time }
+
+    pub fn get_position(&mut self) -> i16 { self.pos }
+}
+
+#[repr(packed)]
 pub struct Encoder<CHA: InputPin, CHB: InputPin> {
-    data: Vec<EncoderPair, U200>,
+    data: Vec<EncoderPair, U160>,
     ready: bool,
     start: u32,
-    _prev_val: i32,
     channel_a: CHA,
     channel_b: CHB,
-    position: i32
+    _prev_val: i16,
+    position: i16
 }
 
 use void::Void;
@@ -52,8 +59,8 @@ impl<CHA: InputPin<Error = Void>, CHB: InputPin<Error = Void>> Encoder<CHA, CHB>
     }
 
     pub fn update(&mut self, channel: &Channel, timestamp: u32) {
-        let a: bool = self.channel_a.is_high().unwrap();
-        let b: bool = self.channel_b.is_high().unwrap();
+        let a: bool = unsafe { self.channel_a.is_high().unwrap() };
+        let b: bool = unsafe { self.channel_b.is_high().unwrap() };
         match *channel {
             Channel::A => {
                 if a == b {
@@ -80,7 +87,7 @@ impl<CHA: InputPin<Error = Void>, CHB: InputPin<Error = Void>> Encoder<CHA, CHB>
 
     }
 
-    fn new_value(&mut self, timestamp: u32, position: i32) {
+    fn new_value(&mut self, timestamp: u32, position: i16) {
         if self.ready {
             return
         }
@@ -88,7 +95,10 @@ impl<CHA: InputPin<Error = Void>, CHB: InputPin<Error = Void>> Encoder<CHA, CHB>
             if self.start == 0 {
                 self.start = timestamp;
             }
-            self.data.push(EncoderPair{time: timestamp - self.start, pos: position}).ok();
+            let t = timestamp - self.start; // & 0xFFFF;
+            unsafe {
+                self.data.push(EncoderPair{time: t, pos: position}).ok();
+            }
             self._prev_val = position;
         }
 
@@ -99,15 +109,6 @@ impl<CHA: InputPin<Error = Void>, CHB: InputPin<Error = Void>> Encoder<CHA, CHB>
 
     pub fn ready(&mut self) -> bool { self.ready }
 
-    pub fn get(&mut self) -> &Vec<EncoderPair, U200> { &self.data }
+    pub fn get(&mut self) -> &Vec<EncoderPair, U160> { unsafe { &self.data } }
 
 }
-
-// impl<CHA: InputPin<Error = Void>, CHB: InputPin<Error = Void>> EncoderTrait for Encoder<CHA, CHB> {
-
-
-
-// }
-
-// Required to allow static CSCounter. See explanation below.
-// unsafe impl<CHA: InputPin<Error = Void>, CHB: InputPin<Error = Void>>  Sync for Encoder<CHA, CHB> {}
