@@ -221,13 +221,6 @@ fn main() -> ! {
     tim1.listen(timer::Event::Update);
     tim1.clear_update_interrupt_flag();
 
-    unsafe {
-        pac::NVIC::unmask(pac::Interrupt::TIM1_UP);
-        let mut nvic = cp.NVIC;
-        nvic.set_priority(pac::Interrupt::TIM1_UP, 0); // prio 0
-        nvic.set_priority(pac::Interrupt::EXTI15_10, 32); // prio 1
-        nvic.set_priority(pac::Interrupt::EXTI9_5, 32); // prio 1
-    }
 
     //USART2_TX PA2
     //USART2_RX PA3
@@ -243,37 +236,19 @@ fn main() -> ! {
         &mut rcc.apb1,
     );
 
-
-    // let encoder1 = Encoder::new(pin_a5, pin_a10); // exti5 and exti10
-    // let encoder2 = Encoder::new(pin_a6, pin_a11); // exti6 and exti11
-    // let encoder3 = Encoder::new(pin_a7, pin_a12); // exti7 and exti12
-    // let encoder4 = Encoder::new(pin_a8, pin_b15); // exti8 and exti15
-    // let encoder5 = Encoder::new(pin_a9, pin_c13); // exti9 and exti13
-
-
     // Move control over LED and DELAY and EXTI into global mutexes
     cortex_m::interrupt::free(|cs| {
         *LED.borrow(cs).borrow_mut() = Some(led);
-        *INT.borrow(cs).borrow_mut() = Some(exti);
         *TIMER_UP.borrow(cs).borrow_mut() = Some(tim1);
-        // *ENCODER1.borrow(cs).borrow_mut() = Some(encoder1);
-        // *ENCODER2.borrow(cs).borrow_mut() = Some(encoder2);
-        // *ENCODER3.borrow(cs).borrow_mut() = Some(encoder3);
-        // *ENCODER4.borrow(cs).borrow_mut() = Some(encoder4);
-        // *ENCODER5.borrow(cs).borrow_mut() = Some(encoder5);
+        *INT.borrow(cs).borrow_mut() = Some(exti);
 
+        // Create encoders inside mutexes to save stack memory. But maybe that is not really
+        // necessary when optimize is enabled.
         *ENCODER1.borrow(cs).borrow_mut() = Some(Encoder::new(pin_a5, pin_a10));
         *ENCODER2.borrow(cs).borrow_mut() = Some(Encoder::new(pin_a6, pin_a11));
         *ENCODER3.borrow(cs).borrow_mut() = Some(Encoder::new(pin_a7, pin_a12));
         *ENCODER4.borrow(cs).borrow_mut() = Some(Encoder::new(pin_a8, pin_b15));
         *ENCODER5.borrow(cs).borrow_mut() = Some(Encoder::new(pin_a9, pin_c13));
-
-
-    //     let encoder1 = Encoder::new(pin_a5, pin_a10); // exti5 and exti10
-    // let encoder2 = Encoder::new(pin_a6, pin_a11); // exti6 and exti11
-    // // let encoder3 = Encoder::new(pin_a7, pin_a12); // exti7 and exti12
-    // let encoder4 = Encoder::new(pin_a8, pin_b15); // exti8 and exti15
-    // let encoder5 = Encoder::new(pin_a9, pin_c13); // exti9 and exti13
     });
 
     let (tx, _) = serial.split();
@@ -283,6 +258,15 @@ fn main() -> ! {
         tx: tx
     };
     writeln!(tx, "let's start! {}!", 12).unwrap();
+
+
+    unsafe {
+        pac::NVIC::unmask(pac::Interrupt::TIM1_UP);
+        let mut nvic = cp.NVIC;
+        nvic.set_priority(pac::Interrupt::TIM1_UP, 0); // prio 0
+        nvic.set_priority(pac::Interrupt::EXTI15_10, 32); // prio 1
+        nvic.set_priority(pac::Interrupt::EXTI9_5, 32); // prio 1
+    }
 
     loop {
 

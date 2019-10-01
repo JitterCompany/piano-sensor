@@ -54,4 +54,4 @@ lto = true # better optimizations
 [profile.dev]
 debug = true
 lto = false
-opt-level = 0
+opt-level = 1

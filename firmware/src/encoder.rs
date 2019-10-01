@@ -20,7 +20,7 @@ impl EncoderPair {
 
 #[repr(packed)]
 pub struct Encoder<CHA: InputPin, CHB: InputPin> {
-    data: Vec<EncoderPair, U160>,
+    data: Vec<EncoderPair, U300>,
     ready: bool,
     start: u32,
     channel_a: CHA,
@@ -52,7 +52,7 @@ impl<CHA: InputPin<Error = Void>, CHB: InputPin<Error = Void>> Encoder<CHA, CHB>
     }
 
     pub fn reset(&mut self) {
-        self.data = Vec::new();
+        self.data.clear();
         self.ready = false;
         self.start = 0;
         self._prev_val = 0;
@@ -109,6 +109,6 @@ impl<CHA: InputPin<Error = Void>, CHB: InputPin<Error = Void>> Encoder<CHA, CHB>
 
     pub fn ready(&mut self) -> bool { self.ready }
 
-    pub fn get(&mut self) -> &Vec<EncoderPair, U160> { unsafe { &self.data } }
+    pub fn get(&mut self) -> &Vec<EncoderPair, U300> { unsafe { &self.data } }
 
 }
