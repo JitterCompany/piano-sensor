@@ -258,7 +258,7 @@
     )
   )
 
-  (module Jitter_Footprints:AEDR-8300 (layer F.Cu) (tedit 5D91FAB1) (tstamp 5D925AD4)
+  (module Jitter_Footprints:AEDR-8300 (layer F.Cu) (tedit 5D9362BF) (tstamp 5D925AD4)
     (at 106 62)
     (path /5D91FC61)
     (fp_text reference U1 (at -0.2 -3.2) (layer F.SilkS)
@@ -288,6 +288,11 @@
       (net 1 GND))
     (pad 1 smd rect (at -1.48 -1.96) (size 1.08 0.72) (layers F.Cu F.Paste F.Mask)
       (net 4 /Ch_B))
+    (model :jitter:AEDR-8300_encoder.STEP
+      (at (xyz 0 0 0))
+      (scale (xyz 1 1 1))
+      (rotate (xyz -90 0 90))
+    )
   )
 
   (module Resistor_SMD:R_0402_1005Metric (layer F.Cu) (tedit 5B301BBD) (tstamp 5D925AC1)

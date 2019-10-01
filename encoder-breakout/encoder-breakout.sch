@@ -1,4 +1,5 @@
 EESchema Schematic File Version 4
+LIBS:encoder-breakout-cache
 EELAYER 30 0
 EELAYER END
 $Descr A4 11693 8268
@@ -230,9 +231,9 @@ L Mechanical:MountingHole_Pad H2
 U 1 1 5D931CDA
 P 5400 1850
 F 0 "H2" H 5500 1899 50  0000 L CNN
-F 1 "MountingHole_Pad" H 5500 1808 50  0000 L CNN
+F 1 "9774060482R" H 5500 1808 50  0000 L CNN
 F 2 "Jitter_Footprints:MountingHole_M4_threaded_6mm" H 5400 1850 50  0001 C CNN
-F 3 "~" H 5400 1850 50  0001 C CNN
+F 3 "http://www.farnell.com/datasheets/2580475.pdf" H 5400 1850 50  0001 C CNN
 	1    5400 1850
 	1    0    0    -1  
 $EndComp
@@ -258,16 +259,14 @@ F 3 "" H 5400 1950 50  0001 C CNN
 	1    5400 1950
 	1    0    0    -1  
 $EndComp
-Text Notes 3450 1550 0    79   ~ 0
-TODO: choose correct mounting holes or smd screw receptacle
 $Comp
 L Mechanical:MountingHole_Pad H1
 U 1 1 5D9317F5
 P 4400 1850
 F 0 "H1" H 4500 1899 50  0000 L CNN
-F 1 "MountingHole_Pad" H 4500 1808 50  0000 L CNN
+F 1 "9774060482R" H 4500 1808 50  0000 L CNN
 F 2 "Jitter_Footprints:MountingHole_M4_threaded_6mm" H 4400 1850 50  0001 C CNN
-F 3 "~" H 4400 1850 50  0001 C CNN
+F 3 "http://www.farnell.com/datasheets/2580475.pdf" H 4400 1850 50  0001 C CNN
 	1    4400 1850
 	1    0    0    -1  
 $EndComp
