@@ -1,0 +1,303 @@
+EESchema Schematic File Version 4
+LIBS:main-board-cache
+EELAYER 30 0
+EELAYER END
+$Descr A4 11693 8268
+encoding utf-8
+Sheet 1 1
+Title ""
+Date ""
+Rev ""
+Comp ""
+Comment1 ""
+Comment2 ""
+Comment3 ""
+Comment4 ""
+$EndDescr
+$Comp
+L power:GND #PWR0101
+U 1 1 5D94DFF6
+P 5750 4500
+F 0 "#PWR0101" H 5750 4250 50  0001 C CNN
+F 1 "GND" H 5755 4327 50  0000 C CNN
+F 2 "" H 5750 4500 50  0001 C CNN
+F 3 "" H 5750 4500 50  0001 C CNN
+	1    5750 4500
+	1    0    0    -1  
+$EndComp
+$Comp
+L power:GND #PWR0102
+U 1 1 5D94E570
+P 5950 4500
+F 0 "#PWR0102" H 5950 4250 50  0001 C CNN
+F 1 "GND" H 5955 4327 50  0000 C CNN
+F 2 "" H 5950 4500 50  0001 C CNN
+F 3 "" H 5950 4500 50  0001 C CNN
+	1    5950 4500
+	1    0    0    -1  
+$EndComp
+$Comp
+L power:+3V3 #PWR0103
+U 1 1 5D94E75B
+P 5850 2100
+F 0 "#PWR0103" H 5850 1950 50  0001 C CNN
+F 1 "+3V3" H 6050 2300 50  0000 C CNN
+F 2 "" H 5850 2100 50  0001 C CNN
+F 3 "" H 5850 2100 50  0001 C CNN
+	1    5850 2100
+	1    0    0    -1  
+$EndComp
+Text Label 3450 3100 0    50   ~ 0
+RX
+Text Label 3500 3200 0    50   ~ 0
+TX
+$Comp
+L power:+3V3 #PWR0104
+U 1 1 5D950043
+P 2850 4450
+F 0 "#PWR0104" H 2850 4300 50  0001 C CNN
+F 1 "+3V3" H 3050 4650 50  0000 C CNN
+F 2 "" H 2850 4450 50  0001 C CNN
+F 3 "" H 2850 4450 50  0001 C CNN
+	1    2850 4450
+	1    0    0    -1  
+$EndComp
+$Comp
+L power:GND #PWR0105
+U 1 1 5D9505F2
+P 3850 3300
+F 0 "#PWR0105" H 3850 3050 50  0001 C CNN
+F 1 "GND" H 3855 3127 50  0000 C CNN
+F 2 "" H 3850 3300 50  0001 C CNN
+F 3 "" H 3850 3300 50  0001 C CNN
+	1    3850 3300
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	3400 3200 3500 3200
+Wire Wire Line
+	3400 3100 3500 3100
+Wire Wire Line
+	3400 3300 3850 3300
+Wire Wire Line
+	2500 4450 2850 4450
+$Comp
+L power:+5V #PWR0106
+U 1 1 5D95119F
+P 3000 4500
+F 0 "#PWR0106" H 3000 4350 50  0001 C CNN
+F 1 "+5V" H 3015 4673 50  0000 C CNN
+F 2 "" H 3000 4500 50  0001 C CNN
+F 3 "" H 3000 4500 50  0001 C CNN
+	1    3000 4500
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	2500 4550 3000 4550
+Wire Wire Line
+	3000 4550 3000 4500
+$Comp
+L Jitter_Components:STM32F103_Blackpill_Board U1
+U 1 1 5D94DE05
+P 5850 3200
+F 0 "U1" H 5300 4150 50  0000 C CNN
+F 1 "STM32F103_Blackpill_Board" H 5850 4600 50  0000 C CNN
+F 2 "Jitter_Footprints:STM32F103_BlackPill" H 5900 3500 50  0001 C CNN
+F 3 "" H 5900 3500 50  0001 C CNN
+	1    5850 3200
+	1    0    0    -1  
+$EndComp
+$Comp
+L Connector_Generic:Conn_02x10_Odd_Even J1
+U 1 1 5D95441F
+P 2200 4850
+F 0 "J1" H 2250 5467 50  0000 C CNN
+F 1 "Conn_02x10_Odd_Even" H 2250 5376 50  0000 C CNN
+F 2 "Connector_PinHeader_2.54mm:PinHeader_2x10_P2.54mm_Horizontal" H 2200 4850 50  0001 C CNN
+F 3 "~" H 2200 4850 50  0001 C CNN
+	1    2200 4850
+	1    0    0    -1  
+$EndComp
+$Comp
+L Connector_Generic:Conn_02x10_Odd_Even J2
+U 1 1 5D9569A4
+P 3750 4850
+F 0 "J2" H 3800 5467 50  0000 C CNN
+F 1 "Conn_02x10_Odd_Even" H 3800 5376 50  0000 C CNN
+F 2 "Connector_PinSocket_2.54mm:PinSocket_2x10_P2.54mm_Horizontal" H 3750 4850 50  0001 C CNN
+F 3 "~" H 3750 4850 50  0001 C CNN
+	1    3750 4850
+	1    0    0    -1  
+$EndComp
+$Comp
+L power:+3V3 #PWR0107
+U 1 1 5D95CA14
+P 4400 4450
+F 0 "#PWR0107" H 4400 4300 50  0001 C CNN
+F 1 "+3V3" H 4600 4650 50  0000 C CNN
+F 2 "" H 4400 4450 50  0001 C CNN
+F 3 "" H 4400 4450 50  0001 C CNN
+	1    4400 4450
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	4050 4450 4400 4450
+$Comp
+L power:+5V #PWR0108
+U 1 1 5D95CA1B
+P 4550 4500
+F 0 "#PWR0108" H 4550 4350 50  0001 C CNN
+F 1 "+5V" H 4565 4673 50  0000 C CNN
+F 2 "" H 4550 4500 50  0001 C CNN
+F 3 "" H 4550 4500 50  0001 C CNN
+	1    4550 4500
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	4050 4550 4550 4550
+Wire Wire Line
+	4550 4550 4550 4500
+$Comp
+L Connector:Conn_01x06_Male J3
+U 1 1 5D960027
+P 5050 5650
+F 0 "J3" H 5158 6031 50  0000 C CNN
+F 1 "Conn_01x06_Male" H 5158 5940 50  0000 C CNN
+F 2 "Jitter_Footprints:JST_PH_B6B-PH-SM4-TB_1x06-1MP_P2.00mm_Vertical" H 5050 5650 50  0001 C CNN
+F 3 "http://www.farnell.com/datasheets/1699381.pdf" H 5050 5650 50  0001 C CNN
+	1    5050 5650
+	1    0    0    -1  
+$EndComp
+$Comp
+L Connector:Conn_01x06_Male J4
+U 1 1 5D960CE1
+P 5900 5650
+F 0 "J4" H 6008 6031 50  0000 C CNN
+F 1 "Conn_01x06_Male" H 6008 5940 50  0000 C CNN
+F 2 "Jitter_Footprints:JST_PH_B6B-PH-SM4-TB_1x06-1MP_P2.00mm_Vertical" H 5900 5650 50  0001 C CNN
+F 3 "http://www.farnell.com/datasheets/1699381.pdf" H 5900 5650 50  0001 C CNN
+	1    5900 5650
+	1    0    0    -1  
+$EndComp
+$Comp
+L Connector:Conn_01x06_Male J5
+U 1 1 5D961F6E
+P 6650 5650
+F 0 "J5" H 6758 6031 50  0000 C CNN
+F 1 "Conn_01x06_Male" H 6758 5940 50  0000 C CNN
+F 2 "Jitter_Footprints:JST_PH_B6B-PH-SM4-TB_1x06-1MP_P2.00mm_Vertical" H 6650 5650 50  0001 C CNN
+F 3 "http://www.farnell.com/datasheets/1699381.pdf" H 6650 5650 50  0001 C CNN
+	1    6650 5650
+	1    0    0    -1  
+$EndComp
+$Comp
+L Connector:Conn_01x06_Male J6
+U 1 1 5D96263A
+P 7400 5650
+F 0 "J6" H 7508 6031 50  0000 C CNN
+F 1 "Conn_01x06_Male" H 7508 5940 50  0000 C CNN
+F 2 "Jitter_Footprints:JST_PH_B6B-PH-SM4-TB_1x06-1MP_P2.00mm_Vertical" H 7400 5650 50  0001 C CNN
+F 3 "http://www.farnell.com/datasheets/1699381.pdf" H 7400 5650 50  0001 C CNN
+	1    7400 5650
+	1    0    0    -1  
+$EndComp
+$Comp
+L Connector:Conn_01x06_Male J7
+U 1 1 5D963036
+P 8200 5650
+F 0 "J7" H 8308 6031 50  0000 C CNN
+F 1 "Conn_01x06_Male" H 8308 5940 50  0000 C CNN
+F 2 "Jitter_Footprints:JST_PH_B6B-PH-SM4-TB_1x06-1MP_P2.00mm_Vertical" H 8200 5650 50  0001 C CNN
+F 3 "http://www.farnell.com/datasheets/1699381.pdf" H 8200 5650 50  0001 C CNN
+	1    8200 5650
+	1    0    0    -1  
+$EndComp
+$Comp
+L Mechanical:MountingHole_Pad H2
+U 1 1 5D94D31C
+P 1600 1450
+F 0 "H2" H 1700 1499 50  0000 L CNN
+F 1 "MountingHole_Pad" H 1700 1408 50  0000 L CNN
+F 2 "MountingHole:MountingHole_4.3x6.2mm_M4_Pad_Via" H 1600 1450 50  0001 C CNN
+F 3 "~" H 1600 1450 50  0001 C CNN
+	1    1600 1450
+	1    0    0    -1  
+$EndComp
+$Comp
+L power:GND #PWR02
+U 1 1 5D94DF59
+P 1600 1550
+F 0 "#PWR02" H 1600 1300 50  0001 C CNN
+F 1 "GND" H 1605 1377 50  0000 C CNN
+F 2 "" H 1600 1550 50  0001 C CNN
+F 3 "" H 1600 1550 50  0001 C CNN
+	1    1600 1550
+	1    0    0    -1  
+$EndComp
+$Comp
+L Mechanical:MountingHole_Pad H3
+U 1 1 5D94F8B7
+P 1600 1950
+F 0 "H3" H 1700 1999 50  0000 L CNN
+F 1 "MountingHole_Pad" H 1700 1908 50  0000 L CNN
+F 2 "MountingHole:MountingHole_4.3x6.2mm_M4_Pad_Via" H 1600 1950 50  0001 C CNN
+F 3 "~" H 1600 1950 50  0001 C CNN
+	1    1600 1950
+	1    0    0    -1  
+$EndComp
+$Comp
+L power:GND #PWR03
+U 1 1 5D94F8BD
+P 1600 2050
+F 0 "#PWR03" H 1600 1800 50  0001 C CNN
+F 1 "GND" H 1605 1877 50  0000 C CNN
+F 2 "" H 1600 2050 50  0001 C CNN
+F 3 "" H 1600 2050 50  0001 C CNN
+	1    1600 2050
+	1    0    0    -1  
+$EndComp
+$Comp
+L Mechanical:MountingHole_Pad H1
+U 1 1 5D9500FE
+P 1600 1000
+F 0 "H1" H 1700 1049 50  0000 L CNN
+F 1 "MountingHole_Pad" H 1700 958 50  0000 L CNN
+F 2 "MountingHole:MountingHole_4.3x6.2mm_M4_Pad_Via" H 1600 1000 50  0001 C CNN
+F 3 "~" H 1600 1000 50  0001 C CNN
+	1    1600 1000
+	1    0    0    -1  
+$EndComp
+$Comp
+L power:GND #PWR01
+U 1 1 5D950104
+P 1600 1100
+F 0 "#PWR01" H 1600 850 50  0001 C CNN
+F 1 "GND" H 1605 927 50  0000 C CNN
+F 2 "" H 1600 1100 50  0001 C CNN
+F 3 "" H 1600 1100 50  0001 C CNN
+	1    1600 1100
+	1    0    0    -1  
+$EndComp
+$Comp
+L Mechanical:MountingHole_Pad H4
+U 1 1 5D950A11
+P 1600 2450
+F 0 "H4" H 1700 2499 50  0000 L CNN
+F 1 "MountingHole_Pad" H 1700 2408 50  0000 L CNN
+F 2 "MountingHole:MountingHole_4.3x6.2mm_M4_Pad_Via" H 1600 2450 50  0001 C CNN
+F 3 "~" H 1600 2450 50  0001 C CNN
+	1    1600 2450
+	1    0    0    -1  
+$EndComp
+$Comp
+L power:GND #PWR04
+U 1 1 5D950A17
+P 1600 2550
+F 0 "#PWR04" H 1600 2300 50  0001 C CNN
+F 1 "GND" H 1605 2377 50  0000 C CNN
+F 2 "" H 1600 2550 50  0001 C CNN
+F 3 "" H 1600 2550 50  0001 C CNN
+	1    1600 2550
+	1    0    0    -1  
+$EndComp
+$EndSCHEMATC
