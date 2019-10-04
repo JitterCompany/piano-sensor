@@ -677,9 +677,9 @@ Wire Wire Line
 	7950 2500 7950 2650
 Wire Wire Line
 	7650 2500 7650 2650
-Text Notes 1300 5600 0    50   ~ 0
+Text Notes 950  5700 0    79   ~ 16
 Male Board-to-Board connector
-Text Notes 4000 5550 0    50   ~ 0
+Text Notes 3850 5700 0    79   ~ 16
 Female Board-to-Board connector
 Text Label 4450 6600 2    50   ~ 0
 Serial_In_Tx
@@ -954,7 +954,7 @@ Wire Wire Line
 Connection ~ 8450 3950
 Wire Wire Line
 	8450 3950 8200 3950
-Text Notes 7400 3450 0    50   ~ 0
+Text Notes 7050 3450 0    79   ~ 16
 Decoupling caps for connectors
 $Comp
 L Device:C C6
@@ -1097,33 +1097,33 @@ Wire Wire Line
 	5800 3050 5600 3050
 Wire Wire Line
 	5800 2950 5600 2950
-Text Label 2950 4650 2    50   ~ 0
+Text Label 3450 4750 2    50   ~ 0
 Serial_Out_Rx
-Text Label 2950 4550 2    50   ~ 0
+Text Label 3450 4650 2    50   ~ 0
 Serial_Out_Tx
 Text Label 5800 2950 0    50   ~ 0
 UART3_TX
 Text Label 5800 3050 0    50   ~ 0
 UART3_RX
 Wire Wire Line
-	3150 4650 2950 4650
+	3650 4750 3450 4750
 Wire Wire Line
-	3150 4550 2950 4550
-Text Label 3150 4850 0    50   ~ 0
+	3650 4650 3450 4650
+Text Label 3650 4950 0    50   ~ 0
 UART3_TX
-Text Label 3150 4950 0    50   ~ 0
+Text Label 3650 5050 0    50   ~ 0
 UART3_RX
-Text Label 2950 4850 2    50   ~ 0
+Text Label 3450 4950 2    50   ~ 0
 Serial_In_Tx
 Wire Wire Line
-	3150 4950 2950 4950
+	3650 5050 3450 5050
 Wire Wire Line
-	3150 4850 2950 4850
-Text Label 2950 4950 2    50   ~ 0
+	3650 4950 3450 4950
+Text Label 3450 5050 2    50   ~ 0
 Serial_In_Rx
-Text Label 3150 4400 0    50   ~ 0
+Text Label 3650 4500 0    50   ~ 0
 UART1_RX
-Text Label 3150 4300 0    50   ~ 0
+Text Label 3650 4400 0    50   ~ 0
 UART1_TX
 $Comp
 L Connector:Conn_01x07_Female J8
@@ -1162,17 +1162,17 @@ F 3 "" H 2250 4050 50  0001 C CNN
 $EndComp
 Wire Wire Line
 	1850 4050 2250 4050
-Text Label 2950 4300 2    50   ~ 0
+Text Label 3450 4400 2    50   ~ 0
 Serial_Debug_Tx
-Text Label 2950 4400 2    50   ~ 0
+Text Label 3450 4500 2    50   ~ 0
 Serial_Debug_Rx
 Wire Wire Line
-	3150 4400 2950 4400
+	3650 4500 3450 4500
 Wire Wire Line
-	3150 4300 2950 4300
-Text Label 3150 4650 0    50   ~ 0
+	3650 4400 3450 4400
+Text Label 3650 4750 0    50   ~ 0
 UART2_RX
-Text Label 3150 4550 0    50   ~ 0
+Text Label 3650 4650 0    50   ~ 0
 UART2_TX
 Text Label 2000 3650 0    50   ~ 0
 Serial_Debug_Tx
@@ -1379,4 +1379,20 @@ F 3 "~" H 7350 5800 50  0001 C CNN
 	1    7350 5800
 	0    1    1    0   
 $EndComp
+Text Notes 3050 4200 0    79   ~ 16
+UART Mapping
+Text Notes 6650 4300 0    79   ~ 16
+Optional Status LEDs
+Text Notes 7100 750  0    79   ~ 16
+Pull ups for encoder signals
+Text Notes 9350 750  0    79   ~ 16
+Encoder connectors
+Text Notes 1550 3100 0    79   ~ 16
+Debug header
+Text Notes 950  5500 0    79   Italic 16
+Output
+Text Notes 3850 5500 0    79   Italic 16
+Input
+Text Notes 4050 700  0    79   Italic 16
+Blackpill (STM32F103)
 $EndSCHEMATC
