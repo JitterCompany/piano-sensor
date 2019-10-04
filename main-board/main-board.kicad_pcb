@@ -1,4 +1,4 @@
-(kicad_pcb (version 20171130) (host pcbnew 5.1.4-e60b266~84~ubuntu16.04.1)
+(kicad_pcb (version 20171130) (host pcbnew "(5.1.4-0-10_14)")
 
   (general
     (thickness 1.6)
@@ -1575,7 +1575,7 @@
   )
 
   (module MountingHole:MountingHole_4.3x6.2mm_M4_Pad_Via (layer F.Cu) (tedit 581E29B6) (tstamp 5D954A56)
-    (at 217 124)
+    (at 217 125)
     (descr "Mounting Hole 4.3x6.2mm, M4")
     (tags "mounting hole 4.3x6.2mm m4")
     (path /5D950A11)
@@ -1632,7 +1632,7 @@
   )
 
   (module MountingHole:MountingHole_4.3x6.2mm_M4_Pad_Via (layer F.Cu) (tedit 581E29B6) (tstamp 5D954A3A)
-    (at 217 164)
+    (at 217 165)
     (descr "Mounting Hole 4.3x6.2mm, M4")
     (tags "mounting hole 4.3x6.2mm m4")
     (path /5D94F8B7)
@@ -1746,7 +1746,7 @@
   )
 
   (module MountingHole:MountingHole_4.3x6.2mm_M4_Pad_Via (layer F.Cu) (tedit 581E29B6) (tstamp 5D954A02)
-    (at 77 124)
+    (at 77 125)
     (descr "Mounting Hole 4.3x6.2mm, M4")
     (tags "mounting hole 4.3x6.2mm m4")
     (path /5D9500FE)

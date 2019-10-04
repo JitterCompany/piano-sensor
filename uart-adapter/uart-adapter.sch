@@ -1,4 +1,5 @@
 EESchema Schematic File Version 4
+LIBS:uart-adapter-cache
 EELAYER 30 0
 EELAYER END
 $Descr A4 11693 8268
@@ -513,14 +514,14 @@ F 3 "" H 4800 3150 50  0001 C CNN
 	1    0    0    -1  
 $EndComp
 $Comp
-L Connector_Generic:Conn_02x12_Odd_Even J3
+L Connector_Generic:Conn_02x08_Odd_Even J3
 U 1 1 5D9E54AC
-P 7750 900
-F 0 "J3" V 7754 212 50  0000 R CNN
-F 1 "Conn_02x12_Odd_Even" V 7845 212 50  0000 R CNN
-F 2 "Connector_PinSocket_2.54mm:PinSocket_2x12_P2.54mm_Vertical" H 7750 900 50  0001 C CNN
-F 3 "~" H 7750 900 50  0001 C CNN
-	1    7750 900 
+P 9050 5200
+F 0 "J3" V 9054 4712 50  0000 R CNN
+F 1 "Conn_02x08_Odd_Even" V 9145 4712 50  0000 R CNN
+F 2 "Connector_PinSocket_2.54mm:PinSocket_2x08_P2.54mm_Vertical" H 9050 5200 50  0001 C CNN
+F 3 "~" H 9050 5200 50  0001 C CNN
+	1    9050 5200
 	0    -1   1    0   
 $EndComp
 Text Label 6350 2350 0    50   ~ 0
@@ -574,26 +575,180 @@ Wire Wire Line
 	4600 2550 5050 2550
 Wire Wire Line
 	4600 2650 5050 2650
-Text Label 7250 1200 3    50   ~ 0
+Text Label 8750 5500 3    50   ~ 0
 RI|CLK
-Text Label 7650 1200 3    50   ~ 0
+Text Label 9150 5500 3    50   ~ 0
 CTS
-Text Label 7550 1200 3    50   ~ 0
+Text Label 9050 5500 3    50   ~ 0
 DSR
-Text Label 7450 1200 3    50   ~ 0
+Text Label 8950 5500 3    50   ~ 0
 DTR
-Text Label 7750 1200 3    50   ~ 0
-GPIO3
-Text Label 7850 1200 3    50   ~ 0
-GPIO2
-Text Label 7950 1200 3    50   ~ 0
-GPIO1
-Text Label 8050 1200 3    50   ~ 0
-GPIO0
-Text Label 7350 1200 3    50   ~ 0
+Text Label 8850 5500 3    50   ~ 0
 DCD
-Text Label 8150 1200 3    50   ~ 0
+Text Label 9250 5500 3    50   ~ 0
 SUSPEND
-Text Label 8250 1200 3    50   ~ 0
+Text Label 9350 5500 3    50   ~ 0
 SUSPENDb
+$Comp
+L Mechanical:MountingHole_Pad H1
+U 1 1 5DA2571A
+P 2800 5000
+F 0 "H1" H 2900 5049 50  0000 L CNN
+F 1 "MountingHole_Pad" H 2900 4958 50  0000 L CNN
+F 2 "MountingHole:MountingHole_4.3x6.2mm_M4_Pad_Via" H 2800 5000 50  0001 C CNN
+F 3 "~" H 2800 5000 50  0001 C CNN
+	1    2800 5000
+	1    0    0    -1  
+$EndComp
+$Comp
+L power:GND #PWR0109
+U 1 1 5DA25E05
+P 2800 5100
+F 0 "#PWR0109" H 2800 4850 50  0001 C CNN
+F 1 "GND" H 2805 4927 50  0000 C CNN
+F 2 "" H 2800 5100 50  0001 C CNN
+F 3 "" H 2800 5100 50  0001 C CNN
+	1    2800 5100
+	1    0    0    -1  
+$EndComp
+$Comp
+L Mechanical:MountingHole_Pad H2
+U 1 1 5DA277B8
+P 2800 5500
+F 0 "H2" H 2900 5549 50  0000 L CNN
+F 1 "MountingHole_Pad" H 2900 5458 50  0000 L CNN
+F 2 "MountingHole:MountingHole_4.3x6.2mm_M4_Pad_Via" H 2800 5500 50  0001 C CNN
+F 3 "~" H 2800 5500 50  0001 C CNN
+	1    2800 5500
+	1    0    0    -1  
+$EndComp
+$Comp
+L power:GND #PWR0110
+U 1 1 5DA277BE
+P 2800 5600
+F 0 "#PWR0110" H 2800 5350 50  0001 C CNN
+F 1 "GND" H 2805 5427 50  0000 C CNN
+F 2 "" H 2800 5600 50  0001 C CNN
+F 3 "" H 2800 5600 50  0001 C CNN
+	1    2800 5600
+	1    0    0    -1  
+$EndComp
+$Comp
+L Connector_Generic:Conn_02x06_Odd_Even J4
+U 1 1 5DA43C5B
+P 7350 5300
+F 0 "J4" V 7354 5580 50  0000 L CNN
+F 1 "Conn_02x06_Odd_Even" V 7445 5580 50  0000 L CNN
+F 2 "Connector_PinSocket_2.54mm:PinSocket_2x06_P2.54mm_Vertical" H 7350 5300 50  0001 C CNN
+F 3 "~" H 7350 5300 50  0001 C CNN
+	1    7350 5300
+	0    1    1    0   
+$EndComp
+Text Label 7550 5100 1    50   ~ 0
+GPIO3
+Text Label 7450 5100 1    50   ~ 0
+GPIO2
+Text Label 7350 5100 1    50   ~ 0
+GPIO1
+Text Label 7250 5100 1    50   ~ 0
+GPIO0
+$Comp
+L power:+3V3 #PWR?
+U 1 1 5DA54B98
+P 6900 4950
+F 0 "#PWR?" H 6900 4800 50  0001 C CNN
+F 1 "+3V3" H 6915 5123 50  0000 C CNN
+F 2 "" H 6900 4950 50  0001 C CNN
+F 3 "" H 6900 4950 50  0001 C CNN
+	1    6900 4950
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	6900 4950 6900 5100
+Wire Wire Line
+	6900 5100 7050 5100
+Connection ~ 7050 5100
+Wire Wire Line
+	7050 5100 7150 5100
+$Comp
+L power:GND #PWR?
+U 1 1 5DA575D1
+P 7700 5600
+F 0 "#PWR?" H 7700 5350 50  0001 C CNN
+F 1 "GND" H 7705 5427 50  0000 C CNN
+F 2 "" H 7700 5600 50  0001 C CNN
+F 3 "" H 7700 5600 50  0001 C CNN
+	1    7700 5600
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	7050 5600 7150 5600
+Connection ~ 7150 5600
+Wire Wire Line
+	7150 5600 7250 5600
+Connection ~ 7250 5600
+Wire Wire Line
+	7250 5600 7350 5600
+Connection ~ 7350 5600
+Wire Wire Line
+	7350 5600 7450 5600
+Connection ~ 7450 5600
+Wire Wire Line
+	7450 5600 7550 5600
+Connection ~ 7550 5600
+Wire Wire Line
+	7550 5600 7700 5600
+$Comp
+L power:+5V #PWR?
+U 1 1 5DA5AA76
+P 9700 5000
+F 0 "#PWR?" H 9700 4850 50  0001 C CNN
+F 1 "+5V" H 9715 5173 50  0000 C CNN
+F 2 "" H 9700 5000 50  0001 C CNN
+F 3 "" H 9700 5000 50  0001 C CNN
+	1    9700 5000
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	9450 5000 9600 5000
+Wire Wire Line
+	9600 5000 9600 5500
+Wire Wire Line
+	9600 5500 9450 5500
+Connection ~ 9600 5000
+Wire Wire Line
+	9600 5000 9700 5000
+Wire Wire Line
+	9350 5000 9250 5000
+Connection ~ 8750 5000
+Wire Wire Line
+	8750 5000 8500 5000
+Connection ~ 8850 5000
+Wire Wire Line
+	8850 5000 8750 5000
+Connection ~ 8950 5000
+Wire Wire Line
+	8950 5000 8850 5000
+Connection ~ 9050 5000
+Wire Wire Line
+	9050 5000 8950 5000
+Connection ~ 9150 5000
+Wire Wire Line
+	9150 5000 9050 5000
+Connection ~ 9250 5000
+Wire Wire Line
+	9250 5000 9150 5000
+$Comp
+L power:GND #PWR?
+U 1 1 5DA62D4C
+P 8500 5000
+F 0 "#PWR?" H 8500 4750 50  0001 C CNN
+F 1 "GND" H 8505 4827 50  0000 C CNN
+F 2 "" H 8500 5000 50  0001 C CNN
+F 3 "" H 8500 5000 50  0001 C CNN
+	1    8500 5000
+	1    0    0    -1  
+$EndComp
+Text Notes 7550 4550 0    50   ~ 0
+Optional Headers with IO pins
 $EndSCHEMATC
