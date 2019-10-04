@@ -1202,4 +1202,24 @@ Wire Wire Line
 	1850 3750 2000 3750
 Wire Wire Line
 	1850 3850 2000 3850
+Text Label 5800 2750 0    50   ~ 0
+Channel1LED
+Wire Wire Line
+	5800 2750 5600 2750
+Text Label 3300 2150 0    50   ~ 0
+Channel2LED
+Text Label 5800 1950 0    50   ~ 0
+Channel3LED
+Text Label 5800 2050 0    50   ~ 0
+Channel4LED
+Text Label 5800 3350 0    50   ~ 0
+Channel5LED
+Wire Wire Line
+	5600 1950 5800 1950
+Wire Wire Line
+	5600 2050 5800 2050
+Wire Wire Line
+	5800 3350 5600 3350
+Wire Wire Line
+	3300 2150 3950 2150
 $EndSCHEMATC
