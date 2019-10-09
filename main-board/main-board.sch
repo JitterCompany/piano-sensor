@@ -1461,4 +1461,118 @@ NoConn ~ 4450 6100
 NoConn ~ 4450 6200
 NoConn ~ 4450 6700
 NoConn ~ 4450 6800
+$Comp
+L Mechanical:MountingHole H7
+U 1 1 5D9E9CCD
+P 9300 5500
+F 0 "H7" H 9400 5546 50  0000 L CNN
+F 1 "MountingHole" H 9400 5455 50  0000 L CNN
+F 2 "Jitter_Footprints:Tooling_hole_4mm_4.04mm_paste" H 9300 5500 50  0001 C CNN
+F 3 "~" H 9300 5500 50  0001 C CNN
+	1    9300 5500
+	1    0    0    -1  
+$EndComp
+$Comp
+L Mechanical:MountingHole H9
+U 1 1 5D9EA724
+P 9300 5700
+F 0 "H9" H 9400 5746 50  0000 L CNN
+F 1 "MountingHole" H 9400 5655 50  0000 L CNN
+F 2 "Jitter_Footprints:Tooling_hole_4mm_4.04mm_paste" H 9300 5700 50  0001 C CNN
+F 3 "~" H 9300 5700 50  0001 C CNN
+	1    9300 5700
+	1    0    0    -1  
+$EndComp
+$Comp
+L Mechanical:MountingHole H11
+U 1 1 5D9EAD57
+P 9300 5900
+F 0 "H11" H 9400 5946 50  0000 L CNN
+F 1 "MountingHole" H 9400 5855 50  0000 L CNN
+F 2 "Jitter_Footprints:Tooling_hole_4mm_4.04mm_paste" H 9300 5900 50  0001 C CNN
+F 3 "~" H 9300 5900 50  0001 C CNN
+	1    9300 5900
+	1    0    0    -1  
+$EndComp
+$Comp
+L Mechanical:MountingHole H5
+U 1 1 5D9EB2E0
+P 9300 5300
+F 0 "H5" H 9400 5346 50  0000 L CNN
+F 1 "MountingHole" H 9400 5255 50  0000 L CNN
+F 2 "Jitter_Footprints:Tooling_hole_4mm_4.04mm_paste" H 9300 5300 50  0001 C CNN
+F 3 "~" H 9300 5300 50  0001 C CNN
+	1    9300 5300
+	1    0    0    -1  
+$EndComp
+$Comp
+L Mechanical:MountingHole H12
+U 1 1 5D9EB65A
+P 10250 5900
+F 0 "H12" H 10350 5946 50  0000 L CNN
+F 1 "MountingHole" H 10350 5855 50  0000 L CNN
+F 2 "Jitter_Footprints:MouseBite_3.7mmx2.2mm" H 10250 5900 50  0001 C CNN
+F 3 "~" H 10250 5900 50  0001 C CNN
+	1    10250 5900
+	1    0    0    -1  
+$EndComp
+$Comp
+L Mechanical:MountingHole H10
+U 1 1 5D9EBB7D
+P 10250 5700
+F 0 "H10" H 10350 5746 50  0000 L CNN
+F 1 "MountingHole" H 10350 5655 50  0000 L CNN
+F 2 "Jitter_Footprints:MouseBite_3.7mmx2.2mm" H 10250 5700 50  0001 C CNN
+F 3 "~" H 10250 5700 50  0001 C CNN
+	1    10250 5700
+	1    0    0    -1  
+$EndComp
+$Comp
+L Mechanical:MountingHole H8
+U 1 1 5D9EBE80
+P 10250 5500
+F 0 "H8" H 10350 5546 50  0000 L CNN
+F 1 "MountingHole" H 10350 5455 50  0000 L CNN
+F 2 "Jitter_Footprints:MouseBite_3.7mmx2.2mm" H 10250 5500 50  0001 C CNN
+F 3 "~" H 10250 5500 50  0001 C CNN
+	1    10250 5500
+	1    0    0    -1  
+$EndComp
+$Comp
+L Mechanical:MountingHole H6
+U 1 1 5D9EC12E
+P 10250 5300
+F 0 "H6" H 10350 5346 50  0000 L CNN
+F 1 "MountingHole" H 10350 5255 50  0000 L CNN
+F 2 "Jitter_Footprints:MouseBite_3.7mmx2.2mm" H 10250 5300 50  0001 C CNN
+F 3 "~" H 10250 5300 50  0001 C CNN
+	1    10250 5300
+	1    0    0    -1  
+$EndComp
+$Comp
+L Mechanical:MountingHole H13
+U 1 1 5DB1B391
+P 10250 6100
+F 0 "H13" H 10350 6146 50  0000 L CNN
+F 1 "MountingHole" H 10350 6055 50  0000 L CNN
+F 2 "Jitter_Footprints:MouseBite_3.7mmx2.2mm" H 10250 6100 50  0001 C CNN
+F 3 "~" H 10250 6100 50  0001 C CNN
+	1    10250 6100
+	1    0    0    -1  
+$EndComp
+$Comp
+L Mechanical:MountingHole H14
+U 1 1 5DB1B672
+P 10250 6300
+F 0 "H14" H 10350 6346 50  0000 L CNN
+F 1 "MountingHole" H 10350 6255 50  0000 L CNN
+F 2 "Jitter_Footprints:MouseBite_3.7mmx2.2mm" H 10250 6300 50  0001 C CNN
+F 3 "~" H 10250 6300 50  0001 C CNN
+	1    10250 6300
+	1    0    0    -1  
+$EndComp
+Text Notes 9250 5050 0    50   ~ 0
+Tooling Holes
+Text Notes 10200 5050 0    50   ~ 0
+Mousebites
 $EndSCHEMATC

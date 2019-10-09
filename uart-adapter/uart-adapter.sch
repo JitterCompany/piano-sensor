@@ -588,45 +588,45 @@ SUSPENDb
 $Comp
 L Mechanical:MountingHole_Pad H1
 U 1 1 5DA2571A
-P 2800 5000
-F 0 "H1" H 2900 5049 50  0000 L CNN
-F 1 "MountingHole_Pad" H 2900 4958 50  0000 L CNN
-F 2 "MountingHole:MountingHole_4.3x6.2mm_M4_Pad_Via" H 2800 5000 50  0001 C CNN
-F 3 "~" H 2800 5000 50  0001 C CNN
-	1    2800 5000
+P 1400 4550
+F 0 "H1" H 1500 4599 50  0000 L CNN
+F 1 "MountingHole_Pad" H 1500 4508 50  0000 L CNN
+F 2 "MountingHole:MountingHole_4.3x6.2mm_M4_Pad_Via" H 1400 4550 50  0001 C CNN
+F 3 "~" H 1400 4550 50  0001 C CNN
+	1    1400 4550
 	1    0    0    -1  
 $EndComp
 $Comp
 L power:GND #PWR0109
 U 1 1 5DA25E05
-P 2800 5100
-F 0 "#PWR0109" H 2800 4850 50  0001 C CNN
-F 1 "GND" H 2805 4927 50  0000 C CNN
-F 2 "" H 2800 5100 50  0001 C CNN
-F 3 "" H 2800 5100 50  0001 C CNN
-	1    2800 5100
+P 1400 4650
+F 0 "#PWR0109" H 1400 4400 50  0001 C CNN
+F 1 "GND" H 1405 4477 50  0000 C CNN
+F 2 "" H 1400 4650 50  0001 C CNN
+F 3 "" H 1400 4650 50  0001 C CNN
+	1    1400 4650
 	1    0    0    -1  
 $EndComp
 $Comp
 L Mechanical:MountingHole_Pad H2
 U 1 1 5DA277B8
-P 2800 5500
-F 0 "H2" H 2900 5549 50  0000 L CNN
-F 1 "MountingHole_Pad" H 2900 5458 50  0000 L CNN
-F 2 "MountingHole:MountingHole_4.3x6.2mm_M4_Pad_Via" H 2800 5500 50  0001 C CNN
-F 3 "~" H 2800 5500 50  0001 C CNN
-	1    2800 5500
+P 1400 5050
+F 0 "H2" H 1500 5099 50  0000 L CNN
+F 1 "MountingHole_Pad" H 1500 5008 50  0000 L CNN
+F 2 "MountingHole:MountingHole_4.3x6.2mm_M4_Pad_Via" H 1400 5050 50  0001 C CNN
+F 3 "~" H 1400 5050 50  0001 C CNN
+	1    1400 5050
 	1    0    0    -1  
 $EndComp
 $Comp
 L power:GND #PWR0110
 U 1 1 5DA277BE
-P 2800 5600
-F 0 "#PWR0110" H 2800 5350 50  0001 C CNN
-F 1 "GND" H 2805 5427 50  0000 C CNN
-F 2 "" H 2800 5600 50  0001 C CNN
-F 3 "" H 2800 5600 50  0001 C CNN
-	1    2800 5600
+P 1400 5150
+F 0 "#PWR0110" H 1400 4900 50  0001 C CNN
+F 1 "GND" H 1405 4977 50  0000 C CNN
+F 2 "" H 1400 5150 50  0001 C CNN
+F 3 "" H 1400 5150 50  0001 C CNN
+	1    1400 5150
 	1    0    0    -1  
 $EndComp
 $Comp
@@ -826,4 +826,96 @@ Wire Wire Line
 Wire Wire Line
 	9350 5000 9450 5000
 Connection ~ 9450 5000
+$Comp
+L Mechanical:MountingHole H3
+U 1 1 5DAEB2FC
+P 1400 6550
+F 0 "H3" H 1500 6596 50  0000 L CNN
+F 1 "MountingHole" H 1500 6505 50  0000 L CNN
+F 2 "Jitter_Footprints:Tooling_hole_4mm_4.04mm_paste" H 1400 6550 50  0001 C CNN
+F 3 "~" H 1400 6550 50  0001 C CNN
+	1    1400 6550
+	1    0    0    -1  
+$EndComp
+$Comp
+L Mechanical:MountingHole H5
+U 1 1 5DAEB698
+P 1400 6800
+F 0 "H5" H 1500 6846 50  0000 L CNN
+F 1 "MountingHole" H 1500 6755 50  0000 L CNN
+F 2 "Jitter_Footprints:Tooling_hole_4mm_4.04mm_paste" H 1400 6800 50  0001 C CNN
+F 3 "~" H 1400 6800 50  0001 C CNN
+	1    1400 6800
+	1    0    0    -1  
+$EndComp
+$Comp
+L Mechanical:MountingHole H6
+U 1 1 5DAEB935
+P 2250 6800
+F 0 "H6" H 2350 6846 50  0000 L CNN
+F 1 "MountingHole" H 2350 6755 50  0000 L CNN
+F 2 "Jitter_Footprints:Tooling_hole_4mm_4.04mm_paste" H 2250 6800 50  0001 C CNN
+F 3 "~" H 2250 6800 50  0001 C CNN
+	1    2250 6800
+	1    0    0    -1  
+$EndComp
+$Comp
+L Mechanical:MountingHole H4
+U 1 1 5DAEBD59
+P 2250 6550
+F 0 "H4" H 2350 6596 50  0000 L CNN
+F 1 "MountingHole" H 2350 6505 50  0000 L CNN
+F 2 "Jitter_Footprints:Tooling_hole_4mm_4.04mm_paste" H 2250 6550 50  0001 C CNN
+F 3 "~" H 2250 6550 50  0001 C CNN
+	1    2250 6550
+	1    0    0    -1  
+$EndComp
+$Comp
+L Mechanical:MountingHole H7
+U 1 1 5DAECC70
+P 1400 7300
+F 0 "H7" H 1500 7346 50  0000 L CNN
+F 1 "MountingHole" H 1500 7255 50  0000 L CNN
+F 2 "Jitter_Footprints:MouseBite_3.7mmx2.2mm" H 1400 7300 50  0001 C CNN
+F 3 "~" H 1400 7300 50  0001 C CNN
+	1    1400 7300
+	1    0    0    -1  
+$EndComp
+$Comp
+L Mechanical:MountingHole H8
+U 1 1 5DAECE6C
+P 2250 7300
+F 0 "H8" H 2350 7346 50  0000 L CNN
+F 1 "MountingHole" H 2350 7255 50  0000 L CNN
+F 2 "Jitter_Footprints:MouseBite_3.7mmx2.2mm" H 2250 7300 50  0001 C CNN
+F 3 "~" H 2250 7300 50  0001 C CNN
+	1    2250 7300
+	1    0    0    -1  
+$EndComp
+$Comp
+L Mechanical:MountingHole H9
+U 1 1 5DAED48E
+P 1400 7550
+F 0 "H9" H 1500 7596 50  0000 L CNN
+F 1 "MountingHole" H 1500 7505 50  0000 L CNN
+F 2 "Jitter_Footprints:MouseBite_3.7mmx2.2mm" H 1400 7550 50  0001 C CNN
+F 3 "~" H 1400 7550 50  0001 C CNN
+	1    1400 7550
+	1    0    0    -1  
+$EndComp
+$Comp
+L Mechanical:MountingHole H10
+U 1 1 5DAED7D5
+P 2250 7550
+F 0 "H10" H 2350 7596 50  0000 L CNN
+F 1 "MountingHole" H 2350 7505 50  0000 L CNN
+F 2 "Jitter_Footprints:MouseBite_3.7mmx2.2mm" H 2250 7550 50  0001 C CNN
+F 3 "~" H 2250 7550 50  0001 C CNN
+	1    2250 7550
+	1    0    0    -1  
+$EndComp
+Text Notes 1500 6250 0    118  ~ 0
+Tooling Holes
+Text Notes 1500 7100 0    118  ~ 0
+Mousebites
 $EndSCHEMATC
