@@ -40,8 +40,8 @@ $Comp
 L Connector:USB_B_Micro J2
 U 1 1 5D969625
 P 2450 3000
-F 0 "J2" H 2507 3467 50  0000 C CNN
-F 1 "Wuerth_629105150521" H 2507 3376 50  0000 C CNN
+F 0 "J2" H 2300 3450 50  0000 C CNN
+F 1 "Wuerth_629105150521" H 2400 3350 50  0000 C CNN
 F 2 "Connector_USB:USB_Micro-B_Wuerth_629105150521" H 2600 2950 50  0001 C CNN
 F 3 "~" H 2600 2950 50  0001 C CNN
 	1    2450 3000
@@ -58,8 +58,6 @@ F 3 "" H 3350 2800 50  0001 C CNN
 	1    3350 2800
 	1    0    0    -1  
 $EndComp
-Wire Wire Line
-	2750 2800 3250 2800
 $Comp
 L power:GND #PWR0104
 U 1 1 5D96DBA3
@@ -74,7 +72,7 @@ $EndComp
 Wire Wire Line
 	2350 3400 2450 3400
 Wire Wire Line
-	2600 3400 2600 3600
+	2600 3400 2600 3550
 Connection ~ 2450 3400
 Wire Wire Line
 	2450 3400 2600 3400
@@ -132,7 +130,7 @@ Wire Wire Line
 Wire Wire Line
 	5650 1950 5650 1600
 Wire Wire Line
-	5650 1600 4750 1600
+	5650 1600 5400 1600
 Wire Wire Line
 	4750 1600 4750 1800
 Text Label 5000 1600 0    50   ~ 0
@@ -333,7 +331,7 @@ L Regulator_Linear:TLV1117-33 U2
 U 1 1 5D9B08E6
 P 3650 1150
 F 0 "U2" H 3650 1392 50  0000 C CNN
-F 1 "TLV1117LV-33" H 3650 1301 50  0000 C CNN
+F 1 "TLV1117LV-33" H 3600 1300 50  0000 C CNN
 F 2 "Package_TO_SOT_SMD:SOT-223-3_TabPin2" H 3650 1150 50  0001 C CNN
 F 3 "http://www.ti.com/lit/ds/symlink/tlv1117lv.pdf" H 3650 1150 50  0001 C CNN
 F 4 "3122356" H 3650 1150 50  0001 C CNN "Farnell"
@@ -382,8 +380,6 @@ $EndComp
 Wire Wire Line
 	4250 1150 4150 1150
 Connection ~ 4150 1150
-Wire Wire Line
-	4150 1150 3950 1150
 $Comp
 L power:GND #PWR06
 U 1 1 5D9B702D
@@ -577,7 +573,7 @@ Wire Wire Line
 	4600 2650 5050 2650
 Text Label 8750 5500 3    50   ~ 0
 RI|CLK
-Text Label 9150 5500 3    50   ~ 0
+Text Label 9250 5500 3    50   ~ 0
 CTS
 Text Label 9050 5500 3    50   ~ 0
 DSR
@@ -585,9 +581,9 @@ Text Label 8950 5500 3    50   ~ 0
 DTR
 Text Label 8850 5500 3    50   ~ 0
 DCD
-Text Label 9250 5500 3    50   ~ 0
-SUSPEND
 Text Label 9350 5500 3    50   ~ 0
+SUSPEND
+Text Label 9450 5500 3    50   ~ 0
 SUSPENDb
 $Comp
 L Mechanical:MountingHole_Pad H1
@@ -709,17 +705,6 @@ F 3 "" H 9700 5000 50  0001 C CNN
 	1    9700 5000
 	1    0    0    -1  
 $EndComp
-Wire Wire Line
-	9450 5000 9600 5000
-Wire Wire Line
-	9600 5000 9600 5500
-Wire Wire Line
-	9600 5500 9450 5500
-Connection ~ 9600 5000
-Wire Wire Line
-	9600 5000 9700 5000
-Wire Wire Line
-	9350 5000 9250 5000
 Connection ~ 8750 5000
 Wire Wire Line
 	8750 5000 8500 5000
@@ -735,7 +720,6 @@ Wire Wire Line
 Connection ~ 9150 5000
 Wire Wire Line
 	9150 5000 9050 5000
-Connection ~ 9250 5000
 Wire Wire Line
 	9250 5000 9150 5000
 $Comp
@@ -796,4 +780,50 @@ F 3 "" H 4550 4200 50  0001 C CNN
 	1    4550 4200
 	1    0    0    -1  
 $EndComp
+$Comp
+L power:PWR_FLAG #FLG0101
+U 1 1 5DAB44D6
+P 2800 3550
+F 0 "#FLG0101" H 2800 3625 50  0001 C CNN
+F 1 "PWR_FLAG" H 2800 3723 50  0000 C CNN
+F 2 "" H 2800 3550 50  0001 C CNN
+F 3 "~" H 2800 3550 50  0001 C CNN
+	1    2800 3550
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	2800 3550 2600 3550
+Connection ~ 2600 3550
+Wire Wire Line
+	2600 3550 2600 3600
+NoConn ~ 7900 3100
+NoConn ~ 7900 3000
+NoConn ~ 7900 2500
+NoConn ~ 7900 2400
+NoConn ~ 2750 3200
+$Comp
+L power:PWR_FLAG #FLG0103
+U 1 1 5DACA3F6
+P 5400 1600
+F 0 "#FLG0103" H 5400 1675 50  0001 C CNN
+F 1 "PWR_FLAG" H 5400 1773 50  0000 C CNN
+F 2 "" H 5400 1600 50  0001 C CNN
+F 3 "~" H 5400 1600 50  0001 C CNN
+	1    5400 1600
+	1    0    0    -1  
+$EndComp
+Connection ~ 5400 1600
+Wire Wire Line
+	5400 1600 4750 1600
+Wire Wire Line
+	2750 2800 3250 2800
+Wire Wire Line
+	3950 1150 4150 1150
+Text Label 9150 5500 3    50   ~ 0
+RTS
+Wire Wire Line
+	9450 5000 9700 5000
+Wire Wire Line
+	9350 5000 9450 5000
+Connection ~ 9450 5000
 $EndSCHEMATC
