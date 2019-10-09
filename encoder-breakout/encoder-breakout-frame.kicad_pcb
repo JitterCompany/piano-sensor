@@ -1,4 +1,4 @@
-(kicad_pcb (version 20171130) (host pcbnew "(5.1.4-0-10_14)")
+(kicad_pcb (version 20171130) (host pcbnew 5.1.4-e60b266~84~ubuntu16.04.1)
 
   (general
     (thickness 1.6)
@@ -86,9 +86,9 @@
       (subtractmaskfromsilk false)
       (outputformat 1)
       (mirror false)
-      (drillshape 1)
+      (drillshape 0)
       (scaleselection 1)
-      (outputdirectory ""))
+      (outputdirectory "gerber__76x63/"))
   )
 
   (net 0 "")
@@ -114,6 +114,54 @@
     (add_net GND)
     (add_net "Net-(D1-Pad2)")
     (add_net "Net-(R2-Pad2)")
+  )
+
+  (module Jitter_Footprints:Tooling_hole_4mm_4.04mm_paste_dual_sided locked (layer F.Cu) (tedit 5D9DFA77) (tstamp 5D9E473C)
+    (at 205 112)
+    (fp_text reference REF** (at -4.8 -1.5) (layer F.SilkS) hide
+      (effects (font (size 1 1) (thickness 0.15)))
+    )
+    (fp_text value "Tooling hole 4mm_4.04mm_paste" (at 0 -3.2) (layer F.Fab) hide
+      (effects (font (size 1 1) (thickness 0.15)))
+    )
+    (pad "" np_thru_hole circle (at 0 0) (size 4 4) (drill 4) (layers *.Cu *.Paste *.Mask)
+      (solder_paste_margin 0.04))
+  )
+
+  (module Jitter_Footprints:Tooling_hole_4mm_4.04mm_paste_dual_sided locked (layer F.Cu) (tedit 5D9DFA77) (tstamp 5D9E473C)
+    (at 205 132)
+    (fp_text reference REF** (at -4.8 -1.5) (layer F.SilkS) hide
+      (effects (font (size 1 1) (thickness 0.15)))
+    )
+    (fp_text value "Tooling hole 4mm_4.04mm_paste" (at 0 -3.2) (layer F.Fab) hide
+      (effects (font (size 1 1) (thickness 0.15)))
+    )
+    (pad "" np_thru_hole circle (at 0 0) (size 4 4) (drill 4) (layers *.Cu *.Paste *.Mask)
+      (solder_paste_margin 0.04))
+  )
+
+  (module Jitter_Footprints:Tooling_hole_4mm_4.04mm_paste_dual_sided locked (layer F.Cu) (tedit 5D9DFA77) (tstamp 5D9E473C)
+    (at 135 142)
+    (fp_text reference REF** (at -4.8 -1.5) (layer F.SilkS) hide
+      (effects (font (size 1 1) (thickness 0.15)))
+    )
+    (fp_text value "Tooling hole 4mm_4.04mm_paste" (at 0 -3.2) (layer F.Fab) hide
+      (effects (font (size 1 1) (thickness 0.15)))
+    )
+    (pad "" np_thru_hole circle (at 0 0) (size 4 4) (drill 4) (layers *.Cu *.Paste *.Mask)
+      (solder_paste_margin 0.04))
+  )
+
+  (module Jitter_Footprints:Tooling_hole_4mm_4.04mm_paste_dual_sided locked (layer F.Cu) (tedit 5D9DFA77) (tstamp 5D9E472D)
+    (at 135 102)
+    (fp_text reference REF** (at -4.8 -1.5) (layer F.SilkS) hide
+      (effects (font (size 1 1) (thickness 0.15)))
+    )
+    (fp_text value "Tooling hole 4mm_4.04mm_paste_dual_sided" (at 0 -3.2) (layer F.Fab) hide
+      (effects (font (size 1 1) (thickness 0.15)))
+    )
+    (pad "" np_thru_hole circle (at 0 0) (size 4 4) (drill 4) (layers *.Cu *.Paste *.Mask)
+      (solder_paste_margin 0.04))
   )
 
   (module Jitter_Footprints:MouseBite_3.7mmx2.2mm (layer F.Cu) (tedit 5D9DC05A) (tstamp 5D9E437E)
@@ -204,54 +252,6 @@
     (pad "" np_thru_hole circle (at 0.25 1.4 180) (size 0.5 0.5) (drill 0.5) (layers *.Cu *.Mask))
     (pad "" np_thru_hole circle (at 1.95 0.5 180) (size 0.5 0.5) (drill 0.5) (layers *.Cu *.Mask))
     (pad "" np_thru_hole circle (at 0.25 0.5 180) (size 0.5 0.5) (drill 0.5) (layers *.Cu *.Mask))
-  )
-
-  (module Jitter_Footprints:Tooling_hole_4mm_4.04mm_paste locked (layer F.Cu) (tedit 5C8006A4) (tstamp 5D9E473C)
-    (at 205 112)
-    (fp_text reference REF** (at -4.8 -1.5) (layer F.SilkS) hide
-      (effects (font (size 1 1) (thickness 0.15)))
-    )
-    (fp_text value "Tooling hole 4mm_4.04mm_paste" (at 0 -3.2) (layer F.Fab) hide
-      (effects (font (size 1 1) (thickness 0.15)))
-    )
-    (pad "" np_thru_hole circle (at 0 0) (size 4 4) (drill 4) (layers *.Cu *.Mask F.Paste)
-      (solder_paste_margin 0.04))
-  )
-
-  (module Jitter_Footprints:Tooling_hole_4mm_4.04mm_paste locked (layer F.Cu) (tedit 5C8006A4) (tstamp 5D9E473C)
-    (at 205 132)
-    (fp_text reference REF** (at -4.8 -1.5) (layer F.SilkS) hide
-      (effects (font (size 1 1) (thickness 0.15)))
-    )
-    (fp_text value "Tooling hole 4mm_4.04mm_paste" (at 0 -3.2) (layer F.Fab) hide
-      (effects (font (size 1 1) (thickness 0.15)))
-    )
-    (pad "" np_thru_hole circle (at 0 0) (size 4 4) (drill 4) (layers *.Cu *.Mask F.Paste)
-      (solder_paste_margin 0.04))
-  )
-
-  (module Jitter_Footprints:Tooling_hole_4mm_4.04mm_paste locked (layer F.Cu) (tedit 5C8006A4) (tstamp 5D9E473C)
-    (at 135 142)
-    (fp_text reference REF** (at -4.8 -1.5) (layer F.SilkS) hide
-      (effects (font (size 1 1) (thickness 0.15)))
-    )
-    (fp_text value "Tooling hole 4mm_4.04mm_paste" (at 0 -3.2) (layer F.Fab) hide
-      (effects (font (size 1 1) (thickness 0.15)))
-    )
-    (pad "" np_thru_hole circle (at 0 0) (size 4 4) (drill 4) (layers *.Cu *.Mask F.Paste)
-      (solder_paste_margin 0.04))
-  )
-
-  (module Jitter_Footprints:Tooling_hole_4mm_4.04mm_paste locked (layer F.Cu) (tedit 5C8006A4) (tstamp 5D9E472D)
-    (at 135 102)
-    (fp_text reference REF** (at -4.8 -1.5) (layer F.SilkS) hide
-      (effects (font (size 1 1) (thickness 0.15)))
-    )
-    (fp_text value "Tooling hole 4mm_4.04mm_paste" (at 0 -3.2) (layer F.Fab) hide
-      (effects (font (size 1 1) (thickness 0.15)))
-    )
-    (pad "" np_thru_hole circle (at 0 0) (size 4 4) (drill 4) (layers *.Cu *.Mask F.Paste)
-      (solder_paste_margin 0.04))
   )
 
   (module Jitter_Footprints:MouseBite_3.7mmx2.2mm (layer F.Cu) (tedit 5D9DC05A) (tstamp 5D9E437E)
