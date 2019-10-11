@@ -71,8 +71,6 @@ F 3 "" H 2600 3600 50  0001 C CNN
 $EndComp
 Wire Wire Line
 	2350 3400 2450 3400
-Wire Wire Line
-	2600 3400 2600 3550
 Connection ~ 2450 3400
 Wire Wire Line
 	2450 3400 2600 3400
@@ -115,26 +113,16 @@ Tx
 $Comp
 L Device:R R1
 U 1 1 5D983F6E
-P 4750 1950
-F 0 "R1" H 4820 1996 50  0000 L CNN
-F 1 "1k" H 4820 1905 50  0000 L CNN
-F 2 "Resistor_SMD:R_0402_1005Metric" V 4680 1950 50  0001 C CNN
-F 3 "~" H 4750 1950 50  0001 C CNN
-	1    4750 1950
+P 4900 2100
+F 0 "R1" H 4970 2146 50  0000 L CNN
+F 1 "1k" H 4970 2055 50  0000 L CNN
+F 2 "Resistor_SMD:R_0402_1005Metric" V 4830 2100 50  0001 C CNN
+F 3 "~" H 4900 2100 50  0001 C CNN
+	1    4900 2100
 	1    0    0    -1  
 $EndComp
 Wire Wire Line
-	5050 2250 4750 2250
-Wire Wire Line
-	4750 2250 4750 2100
-Wire Wire Line
-	5650 1950 5650 1600
-Wire Wire Line
-	5650 1600 5400 1600
-Wire Wire Line
-	4750 1600 4750 1800
-Text Label 5000 1600 0    50   ~ 0
-VIO
+	5050 2250 4900 2250
 $Comp
 L Device:C_Small C3
 U 1 1 5D98E383
@@ -226,15 +214,7 @@ Internal regulator only supplies 100mA maximum
 Wire Wire Line
 	7000 2900 7900 2900
 Wire Wire Line
-	7000 2550 7000 2900
-Wire Wire Line
-	6250 2550 7000 2550
-Wire Wire Line
-	7400 2800 7900 2800
-Wire Wire Line
-	7400 2650 7400 2800
-Wire Wire Line
-	6250 2650 7400 2650
+	6250 2650 7000 2650
 Wire Wire Line
 	8400 3300 8400 3200
 Connection ~ 8400 3300
@@ -434,8 +414,6 @@ Wire Wire Line
 	3950 2350 4150 2350
 Wire Wire Line
 	4550 2350 4550 1700
-Wire Wire Line
-	4550 1700 5550 1700
 Wire Wire Line
 	4550 2350 4450 2350
 Wire Wire Line
@@ -780,41 +758,11 @@ F 3 "" H 4550 4200 50  0001 C CNN
 	1    4550 4200
 	1    0    0    -1  
 $EndComp
-$Comp
-L power:PWR_FLAG #FLG0101
-U 1 1 5DAB44D6
-P 2800 3550
-F 0 "#FLG0101" H 2800 3625 50  0001 C CNN
-F 1 "PWR_FLAG" H 2800 3723 50  0000 C CNN
-F 2 "" H 2800 3550 50  0001 C CNN
-F 3 "~" H 2800 3550 50  0001 C CNN
-	1    2800 3550
-	1    0    0    -1  
-$EndComp
-Wire Wire Line
-	2800 3550 2600 3550
-Connection ~ 2600 3550
-Wire Wire Line
-	2600 3550 2600 3600
 NoConn ~ 7900 3100
 NoConn ~ 7900 3000
 NoConn ~ 7900 2500
 NoConn ~ 7900 2400
 NoConn ~ 2750 3200
-$Comp
-L power:PWR_FLAG #FLG0103
-U 1 1 5DACA3F6
-P 5400 1600
-F 0 "#FLG0103" H 5400 1675 50  0001 C CNN
-F 1 "PWR_FLAG" H 5400 1773 50  0000 C CNN
-F 2 "" H 5400 1600 50  0001 C CNN
-F 3 "~" H 5400 1600 50  0001 C CNN
-	1    5400 1600
-	1    0    0    -1  
-$EndComp
-Connection ~ 5400 1600
-Wire Wire Line
-	5400 1600 4750 1600
 Wire Wire Line
 	2750 2800 3250 2800
 Wire Wire Line
@@ -918,4 +866,28 @@ Text Notes 1500 6250 0    118  ~ 0
 Tooling Holes
 Text Notes 1500 7100 0    118  ~ 0
 Mousebites
+Wire Wire Line
+	5650 1950 5550 1950
+Connection ~ 5550 1950
+Wire Wire Line
+	4550 1700 4900 1700
+Wire Wire Line
+	4900 1950 4900 1700
+Connection ~ 4900 1700
+Wire Wire Line
+	4900 1700 5550 1700
+Wire Wire Line
+	2600 3400 2600 3600
+Text Label 7650 2800 0    50   ~ 0
+Rx
+Text Label 7650 2900 0    50   ~ 0
+Tx
+Wire Wire Line
+	7000 2650 7000 2900
+Wire Wire Line
+	7100 2550 7100 2800
+Wire Wire Line
+	6250 2550 7100 2550
+Wire Wire Line
+	7100 2800 7900 2800
 $EndSCHEMATC
