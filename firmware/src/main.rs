@@ -73,30 +73,30 @@ static TIME_MS: CSCounter<u32> = CSCounter(UnsafeCell::new(0));
 
 static ENCODER1: Mutex<RefCell<Option<Encoder<
         gpioa::PA5<Input<PullUp>>,
-        gpioa::PA10<Input<PullUp>>
+        gpioc::PC13<Input<PullUp>>
         >>>> = Mutex::new(RefCell::new(None));
 
 
 static ENCODER2: Mutex<RefCell<Option<Encoder<
         gpioa::PA6<Input<PullUp>>,
-        gpioa::PA11<Input<PullUp>>
+        gpioa::PA12<Input<PullUp>>
         >>>> = Mutex::new(RefCell::new(None));
 
 static ENCODER3: Mutex<RefCell<Option<Encoder<
         gpioa::PA7<Input<PullUp>>,
-        gpioa::PA12<Input<PullUp>>
+        gpioa::PA11<Input<PullUp>>
         >>>> = Mutex::new(RefCell::new(None));
 
 
 static ENCODER4: Mutex<RefCell<Option<Encoder<
-        gpioa::PA8<Input<PullUp>>,
-        gpiob::PB15<Input<PullUp>>
+        gpioa::PA9<Input<PullUp>>,
+        gpioa::PA10<Input<PullUp>>
         >>>> = Mutex::new(RefCell::new(None));
 
 
 static ENCODER5: Mutex<RefCell<Option<Encoder<
-        gpioa::PA9<Input<PullUp>>,
-        gpioc::PC13<Input<PullUp>>
+        gpioa::PA8<Input<PullUp>>,
+        gpiob::PB15<Input<PullUp>>
         >>>> = Mutex::new(RefCell::new(None));
 
 
@@ -244,11 +244,11 @@ fn main() -> ! {
 
         // Create encoders inside mutexes to save stack memory. But maybe that is not really
         // necessary when optimize is enabled.
-        *ENCODER1.borrow(cs).borrow_mut() = Some(Encoder::new(pin_a5, pin_a10));
-        *ENCODER2.borrow(cs).borrow_mut() = Some(Encoder::new(pin_a6, pin_a11));
-        *ENCODER3.borrow(cs).borrow_mut() = Some(Encoder::new(pin_a7, pin_a12));
-        *ENCODER4.borrow(cs).borrow_mut() = Some(Encoder::new(pin_a8, pin_b15));
-        *ENCODER5.borrow(cs).borrow_mut() = Some(Encoder::new(pin_a9, pin_c13));
+        *ENCODER1.borrow(cs).borrow_mut() = Some(Encoder::new(pin_a5, pin_c13));
+        *ENCODER2.borrow(cs).borrow_mut() = Some(Encoder::new(pin_a6, pin_a12));
+        *ENCODER3.borrow(cs).borrow_mut() = Some(Encoder::new(pin_a7, pin_a11));
+        *ENCODER4.borrow(cs).borrow_mut() = Some(Encoder::new(pin_a9, pin_a10));
+        *ENCODER5.borrow(cs).borrow_mut() = Some(Encoder::new(pin_a8, pin_b15));
     });
 
     let (tx, _) = serial.split();
@@ -326,35 +326,46 @@ fn encoder_isr(channel: Channel) {
         if let Some(ref mut exti) = INT.borrow(cs).borrow_mut().deref_mut() {
 
             let pr = exti.pr.read();
+            let t: u32 = TIME_MS.get();
 
-            if pr.pr5().bit_is_set() || pr.pr10().bit_is_set() {
+            if pr.pr5().bit_is_set() || pr.pr13().bit_is_set() {
                 // Clear the interrupt flagw.
                 exti.pr.write(|w| {
                     w.pr5().set_bit();
-                    w.pr10().set_bit()
+                    w.pr13().set_bit()
                 });
                 if let Some(ref mut encoder) = ENCODER1.borrow(cs).borrow_mut().deref_mut() {
-                    encoder.update(&channel, TIME_MS.get() as u32);
+                    encoder.update(&channel, t);
                 }
             }
-            if pr.pr6().bit_is_set() || pr.pr11().bit_is_set() {
+            if pr.pr6().bit_is_set() || pr.pr12().bit_is_set() {
                 // Clear the interrupt flagw.
                 exti.pr.write(|w| {
                     w.pr6().set_bit();
-                    w.pr11().set_bit()
+                    w.pr12().set_bit()
                 });
                 if let Some(ref mut encoder) = ENCODER2.borrow(cs).borrow_mut().deref_mut() {
-                    encoder.update(&channel, TIME_MS.get() as u32);
+                    encoder.update(&channel, t);
                 }
             }
-            if pr.pr7().bit_is_set() || pr.pr12().bit_is_set() {
+            if pr.pr7().bit_is_set() || pr.pr11().bit_is_set() {
                 // Clear the interrupt flagw.
                 exti.pr.write(|w| {
                     w.pr7().set_bit();
-                    w.pr12().set_bit()
+                    w.pr11().set_bit()
                 });
                 if let Some(ref mut encoder) = ENCODER3.borrow(cs).borrow_mut().deref_mut() {
-                    encoder.update(&channel, TIME_MS.get() as u32);
+                    encoder.update(&channel, t);
+                }
+            }
+            if pr.pr9().bit_is_set() || pr.pr10().bit_is_set() {
+                // Clear the interrupt flagw.
+                exti.pr.write(|w| {
+                    w.pr9().set_bit();
+                    w.pr10().set_bit()
+                });
+                if let Some(ref mut encoder) = ENCODER4.borrow(cs).borrow_mut().deref_mut() {
+                    encoder.update(&channel, t);
                 }
             }
             if pr.pr8().bit_is_set() || pr.pr15().bit_is_set() {
@@ -363,18 +374,8 @@ fn encoder_isr(channel: Channel) {
                     w.pr8().set_bit();
                     w.pr15().set_bit()
                 });
-                if let Some(ref mut encoder) = ENCODER4.borrow(cs).borrow_mut().deref_mut() {
-                    encoder.update(&channel, TIME_MS.get() as u32);
-                }
-            }
-            if pr.pr9().bit_is_set() || pr.pr13().bit_is_set() {
-                // Clear the interrupt flagw.
-                exti.pr.write(|w| {
-                    w.pr9().set_bit();
-                    w.pr13().set_bit()
-                });
                 if let Some(ref mut encoder) = ENCODER5.borrow(cs).borrow_mut().deref_mut() {
-                    encoder.update(&channel, TIME_MS.get() as u32);
+                    encoder.update(&channel, t);
                 }
             }
 
