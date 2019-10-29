@@ -21,7 +21,7 @@ use stm32f1xx_hal::{
     gpio::*, // gpio hal implementation for stm32f1xx
     timer,
     serial::{Config, Serial},
-    pac::{self, interrupt, EXTI, USART2} // peripheral access crate (register access)
+    pac::{self, interrupt, EXTI, USART2, USART3} // peripheral access crate (register access)
 };
 
 extern crate embedded_hal;
@@ -45,6 +45,20 @@ struct FormatTx {
 }
 
 impl fmt::Write for FormatTx {
+    fn write_str(&mut self, s: &str) -> core::fmt::Result {
+        s.as_bytes()
+            .iter()
+            .try_for_each(|c| nb::block!(self.tx.write(*c)))
+            .map_err(|_| core::fmt::Error)
+    }
+}
+
+
+struct FormatTx3 {
+    tx :  stm32f1xx_hal::serial::Tx<USART3>,
+}
+
+impl fmt::Write for FormatTx3 {
     fn write_str(&mut self, s: &str) -> core::fmt::Result {
         s.as_bytes()
             .iter()
@@ -151,15 +165,15 @@ fn main() -> ! {
         w.exti7().bits(0b0000)   //PA7 3A
     });
     afio.exticr3.exticr3().modify(|_,w| unsafe {
-        w.exti8().bits(0b0000);  //PA8 4A
-        w.exti9().bits(0b0000);  //PA9 5A
-        w.exti10().bits(0b0000); //PA10 1B
-        w.exti11().bits(0b0000)  //PA11 2B
+        w.exti8().bits(0b0000);  //PA8 5A
+        w.exti9().bits(0b0000);  //PA9 4A
+        w.exti10().bits(0b0000); //PA10 4B
+        w.exti11().bits(0b0000)  //PA11 3B
     });
      afio.exticr4.exticr4().modify(|_,w| unsafe {
-        w.exti12().bits(0b0000); //PA12 3B
-        w.exti15().bits(0b0001); //PB15 4B
-        w.exti13().bits(0b0010)  //PC13 5B
+        w.exti12().bits(0b0000); //PA12 2B
+        w.exti15().bits(0b0001); //PB15 5B
+        w.exti13().bits(0b0010)  //PC13 1B
     });
 
 
@@ -236,6 +250,12 @@ fn main() -> ! {
         &mut rcc.apb1,
     );
 
+
+
+
+
+
+
     // Move control over LED and DELAY and EXTI into global mutexes
     cortex_m::interrupt::free(|cs| {
         *LED.borrow(cs).borrow_mut() = Some(led);
@@ -259,6 +279,24 @@ fn main() -> ! {
     };
     writeln!(tx, "let's start! {}!", 12).unwrap();
 
+    let uart3_tx = gpiob.pb10.into_alternate_push_pull(&mut gpiob.crh);
+    let uart3_rx = gpiob.pb11;
+
+    let serial_in = Serial::usart3(
+        dp.USART3,
+        (uart3_tx, uart3_rx),
+        &mut afio.mapr,
+        Config::default().baudrate(115200.bps()),
+        clocks,
+        &mut rcc.apb1,
+    );
+
+    let (in_tx, mut in_rx) = serial_in.split();
+
+    let mut in_tx = FormatTx3 {
+        tx: in_tx
+    };
+    writeln!(in_tx, "Serial Input side!").unwrap();
 
     unsafe {
         pac::NVIC::unmask(pac::Interrupt::TIM1_UP);
@@ -268,7 +306,26 @@ fn main() -> ! {
         nvic.set_priority(pac::Interrupt::EXTI9_5, 32); // prio 1
     }
 
+
+    let mut ch1_led = gpiob.pb8.into_push_pull_output(&mut gpiob.crh);
+    let mut ch2_led = gpioa.pa4.into_push_pull_output(&mut gpioa.crl);
+    let mut ch3_led = gpiob.pb0.into_push_pull_output(&mut gpiob.crl);
+    let mut ch4_led = gpiob.pb1.into_push_pull_output(&mut gpiob.crl);
+    let mut ch5_led = gpiob.pb14.into_push_pull_output(&mut gpiob.crh);
+
+    ch1_led.set_high().unwrap();
+    ch2_led.set_high().unwrap();
+    ch3_led.set_high().unwrap();
+    ch4_led.set_high().unwrap();
+    ch5_led.set_high().unwrap();
+
+
     loop {
+
+        // writeln!(in_tx, "Wait for input..").unwrap();
+
+        // let received = block!(in_rx.read()).unwrap();
+        // writeln!(in_tx, "Got: {}", received).unwrap();
 
         block!(timer.wait()).unwrap();
 
@@ -276,6 +333,63 @@ fn main() -> ! {
             if let Some(ref mut encoder) = ENCODER1.borrow(cs).borrow_mut().deref_mut() {
                 if encoder.ready() {
                     let data = encoder.get();
+                    writeln!(tx, "Encoder 1").unwrap();
+                    for x in data {
+                        unsafe {
+                            writeln!(tx, "{}: {}", x.time, x.pos).unwrap();
+                        }
+                    }
+                    encoder.reset();
+
+                }
+            }
+
+            if let Some(ref mut encoder) = ENCODER2.borrow(cs).borrow_mut().deref_mut() {
+                if encoder.ready() {
+                    let data = encoder.get();
+                    writeln!(tx, "Encoder 2").unwrap();
+                    for x in data {
+                        unsafe {
+                            writeln!(tx, "{}: {}", x.time, x.pos).unwrap();
+                        }
+                    }
+                    encoder.reset();
+
+                }
+            }
+
+            if let Some(ref mut encoder) = ENCODER3.borrow(cs).borrow_mut().deref_mut() {
+                if encoder.ready() {
+                    let data = encoder.get();
+                    writeln!(tx, "Encoder 3").unwrap();
+                    for x in data {
+                        unsafe {
+                            writeln!(tx, "{}: {}", x.time, x.pos).unwrap();
+                        }
+                    }
+                    encoder.reset();
+
+                }
+            }
+
+            if let Some(ref mut encoder) = ENCODER4.borrow(cs).borrow_mut().deref_mut() {
+                if encoder.ready() {
+                    let data = encoder.get();
+                    writeln!(tx, "Encoder 4").unwrap();
+                    for x in data {
+                        unsafe {
+                            writeln!(tx, "{}: {}", x.time, x.pos).unwrap();
+                        }
+                    }
+                    encoder.reset();
+
+                }
+            }
+
+            if let Some(ref mut encoder) = ENCODER5.borrow(cs).borrow_mut().deref_mut() {
+                if encoder.ready() {
+                    let data = encoder.get();
+                    writeln!(tx, "Encoder 5").unwrap();
                     for x in data {
                         unsafe {
                             writeln!(tx, "{}: {}", x.time, x.pos).unwrap();
@@ -291,6 +405,9 @@ fn main() -> ! {
     }
 }
 
+// fn poll_encoder() {
+
+// }
 
 
 

@@ -3,6 +3,7 @@
 target extended-remote /dev/cu.usbmodemC1CC90EE1
 #target extended-remote /dev/cu.usbmodemC1DDCDF81
 
+
 monitor swdp_scan
 attach 1
 monitor traceswo

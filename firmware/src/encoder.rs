@@ -26,7 +26,8 @@ pub struct Encoder<CHA: InputPin, CHB: InputPin> {
     channel_a: CHA,
     channel_b: CHB,
     _prev_val: i16,
-    position: i16
+    position: i16,
+    max: i16
 }
 
 use void::Void;
@@ -47,7 +48,8 @@ impl<CHA: InputPin<Error = Void>, CHB: InputPin<Error = Void>> Encoder<CHA, CHB>
             _prev_val: 0,
             channel_a: ch_a,
             channel_b: ch_b,
-            position: 0
+            position: 0,
+            max: 0
         }
     }
 
@@ -56,6 +58,7 @@ impl<CHA: InputPin<Error = Void>, CHB: InputPin<Error = Void>> Encoder<CHA, CHB>
         self.ready = false;
         self.start = 0;
         self._prev_val = 0;
+        self.max = 0;
     }
 
     pub fn update(&mut self, channel: &Channel, timestamp: u32) {
@@ -102,9 +105,15 @@ impl<CHA: InputPin<Error = Void>, CHB: InputPin<Error = Void>> Encoder<CHA, CHB>
             self._prev_val = position;
         }
 
-        if self.start != 0 && position == 0 {
-            self.ready = true;
+        if position > self.max {
+            self.max = position;
         }
+
+        // if self.max > 10 {
+            if self.start != 0 && position == 0 {
+                self.ready = true;
+            }
+        // }
     }
 
     pub fn ready(&mut self) -> bool { self.ready }
