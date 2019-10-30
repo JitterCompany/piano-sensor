@@ -7,6 +7,7 @@ import serial
 from serial.tools import list_ports
 
 from tools import set_background_color
+from mainview import MainView
 
 FPS = 20
 
@@ -75,45 +76,21 @@ class MainWindow(QtWidgets.QMainWindow):
             return
         pass
 
-class MyWidget(QtWidgets.QWidget):
-    def __init__(self):
-        super(MyWidget, self).__init__()
-
-        availablePorts = list_ports.comports()
-
-        portsString = ''.join([p.device + '\n' for p in availablePorts])
-
-        self.hello = ["Hallo Welt", "Hei maailma", "Hola Mundo", "Привет мир"]
-
-        self.button = QtWidgets.QPushButton("Click me!")
-        self.text = QtWidgets.QLabel(portsString)
-        self.text.setAlignment(QtCore.Qt.AlignCenter)
-
-        self.layout = QtWidgets.QVBoxLayout()
-        self.layout.addWidget(self.text)
-        self.layout.addWidget(self.button)
-        self.setLayout(self.layout)
-
-        self.button.clicked.connect(self.magic)
-
-
-
-
-    def magic(self):
-        self.text.setText(random.choice(self.hello))
-
-
 if __name__ == "__main__":
     app = QtWidgets.QApplication([])
 
-    widget = MyWidget()
 
     window = MainWindow()
-    window.setCentralWidget(widget)
+
 
     window.show()
     signal.signal(signal.SIGINT, window.quit)
     # signal.signal(signal.SIGINT, signal.SIG_DFL)
+
+    toolbar = QtWidgets.QToolBar()
+    window.addToolBar(toolbar)
+    widget = MainView(toolbar)
+    window.setCentralWidget(widget)
 
     if sys.flags.interactive != 1:
         sys.exit(app.exec_())
