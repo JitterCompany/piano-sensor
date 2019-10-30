@@ -87,30 +87,35 @@ static TIME_MS: CSCounter<u32> = CSCounter(UnsafeCell::new(0));
 
 static ENCODER1: Mutex<RefCell<Option<Encoder<
         gpioa::PA5<Input<PullUp>>,
-        gpioc::PC13<Input<PullUp>>
+        gpioc::PC13<Input<PullUp>>,
+        gpiob::PB8<Output<PushPull>>
         >>>> = Mutex::new(RefCell::new(None));
 
 
 static ENCODER2: Mutex<RefCell<Option<Encoder<
         gpioa::PA6<Input<PullUp>>,
-        gpioa::PA12<Input<PullUp>>
+        gpioa::PA12<Input<PullUp>>,
+        gpioa::PA4<Output<PushPull>>
         >>>> = Mutex::new(RefCell::new(None));
 
 static ENCODER3: Mutex<RefCell<Option<Encoder<
         gpioa::PA7<Input<PullUp>>,
-        gpioa::PA11<Input<PullUp>>
+        gpioa::PA11<Input<PullUp>>,
+        gpiob::PB0<Output<PushPull>>
         >>>> = Mutex::new(RefCell::new(None));
 
 
 static ENCODER4: Mutex<RefCell<Option<Encoder<
         gpioa::PA9<Input<PullUp>>,
-        gpioa::PA10<Input<PullUp>>
+        gpioa::PA10<Input<PullUp>>,
+        gpiob::PB1<Output<PushPull>>
         >>>> = Mutex::new(RefCell::new(None));
 
 
 static ENCODER5: Mutex<RefCell<Option<Encoder<
         gpioa::PA8<Input<PullUp>>,
-        gpiob::PB15<Input<PullUp>>
+        gpiob::PB15<Input<PullUp>>,
+        gpiob::PB14<Output<PushPull>>
         >>>> = Mutex::new(RefCell::new(None));
 
 
@@ -141,6 +146,8 @@ fn main() -> ! {
 
     // turn on led (inverted logic)
     led.set_high().unwrap();
+
+    led.set_low().unwrap();
 
 
     // input pin and interrupt setup
@@ -253,7 +260,17 @@ fn main() -> ! {
 
 
 
+    let ch1_led = gpiob.pb8.into_push_pull_output(&mut gpiob.crh);
+    let ch2_led = gpioa.pa4.into_push_pull_output(&mut gpioa.crl);
+    let ch3_led = gpiob.pb0.into_push_pull_output(&mut gpiob.crl);
+    let ch4_led = gpiob.pb1.into_push_pull_output(&mut gpiob.crl);
+    let ch5_led = gpiob.pb14.into_push_pull_output(&mut gpiob.crh);
 
+    // ch1_led.set_high().unwrap();
+    // ch2_led.set_high().unwrap();
+    // ch3_led.set_high().unwrap();
+    // ch4_led.set_high().unwrap();
+    // ch5_led.set_high().unwrap();
 
 
     // Move control over LED and DELAY and EXTI into global mutexes
@@ -264,11 +281,11 @@ fn main() -> ! {
 
         // Create encoders inside mutexes to save stack memory. But maybe that is not really
         // necessary when optimize is enabled.
-        *ENCODER1.borrow(cs).borrow_mut() = Some(Encoder::new(pin_a5, pin_c13));
-        *ENCODER2.borrow(cs).borrow_mut() = Some(Encoder::new(pin_a6, pin_a12));
-        *ENCODER3.borrow(cs).borrow_mut() = Some(Encoder::new(pin_a7, pin_a11));
-        *ENCODER4.borrow(cs).borrow_mut() = Some(Encoder::new(pin_a9, pin_a10));
-        *ENCODER5.borrow(cs).borrow_mut() = Some(Encoder::new(pin_a8, pin_b15));
+        *ENCODER1.borrow(cs).borrow_mut() = Some(Encoder::new(pin_a5, pin_c13, ch1_led));
+        *ENCODER2.borrow(cs).borrow_mut() = Some(Encoder::new(pin_a6, pin_a12, ch2_led));
+        *ENCODER3.borrow(cs).borrow_mut() = Some(Encoder::new(pin_a7, pin_a11, ch3_led));
+        *ENCODER4.borrow(cs).borrow_mut() = Some(Encoder::new(pin_a9, pin_a10, ch4_led));
+        *ENCODER5.borrow(cs).borrow_mut() = Some(Encoder::new(pin_a8, pin_b15, ch5_led));
     });
 
     let (tx, _) = serial.split();
@@ -291,7 +308,7 @@ fn main() -> ! {
         &mut rcc.apb1,
     );
 
-    let (in_tx, mut in_rx) = serial_in.split();
+    let (in_tx, mut _in_rx) = serial_in.split();
 
     let mut in_tx = FormatTx3 {
         tx: in_tx
@@ -307,17 +324,7 @@ fn main() -> ! {
     }
 
 
-    let mut ch1_led = gpiob.pb8.into_push_pull_output(&mut gpiob.crh);
-    let mut ch2_led = gpioa.pa4.into_push_pull_output(&mut gpioa.crl);
-    let mut ch3_led = gpiob.pb0.into_push_pull_output(&mut gpiob.crl);
-    let mut ch4_led = gpiob.pb1.into_push_pull_output(&mut gpiob.crl);
-    let mut ch5_led = gpiob.pb14.into_push_pull_output(&mut gpiob.crh);
 
-    ch1_led.set_high().unwrap();
-    ch2_led.set_high().unwrap();
-    ch3_led.set_high().unwrap();
-    ch4_led.set_high().unwrap();
-    ch5_led.set_high().unwrap();
 
 
     loop {
