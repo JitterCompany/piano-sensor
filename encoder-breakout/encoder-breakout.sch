@@ -148,11 +148,11 @@ Ch_A
 Text Label 7000 3750 0    50   ~ 0
 Ch_B
 $Comp
-L Connector:Conn_01x06_Female J1
+L Connector_Generic_MountingPin:Conn_01x06_MountingPin J1
 U 1 1 5D92BFA7
 P 9450 3250
 F 0 "J1" H 9478 3226 50  0000 L CNN
-F 1 "Conn_01x06_Female" H 9478 3135 50  0000 L CNN
+F 1 "Conn_01x06_MountingPin" H 9478 3135 50  0000 L CNN
 F 2 "Jitter_Footprints:JST_PH_S6B-PH-SM4-TB_1x06-1MP_P2.00mm_Horizontal" H 9450 3250 50  0001 C CNN
 F 3 "~" H 9450 3250 50  0001 C CNN
 	1    9450 3250
@@ -276,8 +276,6 @@ STATUS_LED_3V3
 Wire Wire Line
 	8550 3550 9250 3550
 Wire Wire Line
-	9250 3350 8550 3350
-Wire Wire Line
 	8400 3350 8400 3400
 $Comp
 L power:PWR_FLAG #FLG0101
@@ -323,8 +321,40 @@ F 3 "~" H 8400 3350 50  0001 C CNN
 	1    8400 3350
 	1    0    0    -1  
 $EndComp
-Connection ~ 8550 3350
-Wire Wire Line
-	8550 3350 8400 3350
 Connection ~ 8400 3350
+Wire Wire Line
+	8400 3350 9250 3350
+$Comp
+L power:GND #PWR011
+U 1 1 5DB9BB58
+P 9450 3750
+F 0 "#PWR011" H 9450 3500 50  0001 C CNN
+F 1 "GND" H 9455 3577 50  0000 C CNN
+F 2 "" H 9450 3750 50  0001 C CNN
+F 3 "" H 9450 3750 50  0001 C CNN
+	1    9450 3750
+	1    0    0    -1  
+$EndComp
+$Comp
+L Jitter_Components:LOGO LOGO2
+U 1 1 5DB9AA77
+P 7500 5000
+F 0 "LOGO2" H 7578 5046 50  0000 L CNN
+F 1 "DNI" H 7578 4955 50  0000 L CNN
+F 2 "Jitter_Logos:JitterLogo" H 7500 5000 50  0001 C CNN
+F 3 "" H 7500 5000 50  0001 C CNN
+	1    7500 5000
+	1    0    0    -1  
+$EndComp
+$Comp
+L Jitter_Components:LOGO LOGO1
+U 1 1 5DB9B670
+P 7000 5000
+F 0 "LOGO1" H 7078 5046 50  0000 L CNN
+F 1 "DNI" H 7078 4955 50  0000 L CNN
+F 2 "Jitter_Logos:JitterLogo" H 7000 5000 50  0001 C CNN
+F 3 "" H 7000 5000 50  0001 C CNN
+	1    7000 5000
+	1    0    0    -1  
+$EndComp
 $EndSCHEMATC
