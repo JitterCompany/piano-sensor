@@ -7,7 +7,7 @@ import serial
 from serial.tools import list_ports
 
 from tools import set_background_color
-from mainview import MainView
+from views import MainView
 
 FPS = 20
 
@@ -35,13 +35,13 @@ class MainWindow(QtWidgets.QMainWindow):
         """Initialize Main Window"""
         # self.setWindowIcon(QtGui.QIcon('assets/icon.png'))
         self.setGeometry(50, 50, 1600, 900)
-        self.setWindowTitle("Serial Console")
         set_background_color(self, 'white')
+        self.setGeometry(50, 50, 1500, 800)
 
         # self.setCentralWidget(self.terminal.view)
-        # self._center()
-        # self.raise_()
-        # self.activateWindow()
+        self._center()
+        self.raise_()
+        self.activateWindow()
 
     def closeEvent(self, event):
         """Handle window close event"""
@@ -81,6 +81,8 @@ if __name__ == "__main__":
 
 
     window = MainWindow()
+
+    window.setWindowTitle("Piano Force Sensor")
 
 
     window.show()
