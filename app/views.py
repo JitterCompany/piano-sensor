@@ -8,6 +8,7 @@ from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.backends.backend_qt5agg import NavigationToolbar2QT as NavigationToolbar
 from matplotlib.figure import Figure
 
+from serialmanager import SerialManager
 
 class FilePicker(QtWidgets.QWidget):
 
@@ -56,7 +57,7 @@ class ResultView(QtWidgets.QWidget):
 
 class TextOutputView(QtWidgets.QWidget):
 
-      def __init__(self, parent=None):
+    def __init__(self, parent=None):
         super(TextOutputView, self).__init__()
 
 
@@ -77,6 +78,11 @@ class TextOutputView(QtWidgets.QWidget):
 
         self.layout.addWidget(QtWidgets.QLabel('Add comments or markers to log output'))
         self.layout.addLayout(self.inputLayout)
+
+
+    @QtCore.Slot(str)
+    def addText(self, text: str):
+        self.output.append(text)
 
 
 
@@ -108,11 +114,12 @@ class MainView(QtWidgets.QWidget):
     def __init__(self, toolbar):
         super(MainView, self).__init__()
 
-        availablePorts = list_ports.comports()
 
-        portsString = ''.join([p.device + '\n' for p in availablePorts])
 
-        self.hello = ["Hallo Welt", "Hei maailma", "Hola Mundo", "Привет мир"]
+        # availablePorts = list_ports.comports()
+
+        # portsString = ''.join([p.device + '\n' for p in availablePorts])
+
 
 
         self.toolbar = toolbar
@@ -124,10 +131,17 @@ class MainView(QtWidgets.QWidget):
 
 
 
-        self.dropdown = QtWidgets.QComboBox()
-        self.dropdown.addItems([p.device for p in availablePorts])
+        self.serialManager = SerialManager()
+
+        # self.serialManager.newCOMPorts.connect(self.updateCOMPorts)
+        # self.serialManager.refresh()
+
         self.toolbar.addWidget(QtWidgets.QLabel("Select COM Port:"))
-        self.toolbar.addWidget(self.dropdown)
+        self.toolbar.addWidget(self.serialManager.getDropdownWidget())
+
+        self.refreshBtn = QtWidgets.QPushButton('Refresh')
+        self.refreshBtn.clicked.connect(self.serialManager.refresh)
+        self.toolbar.addWidget(self.refreshBtn)
 
         self.filepicker = FilePicker()
 
@@ -146,14 +160,12 @@ class MainView(QtWidgets.QWidget):
         self.left = ResultView()
         self.right = TextOutputView()
 
+        self.serialManager.textStream.connect(self.right.addText)
 
         self.layout.addWidget(self.left)
         self.layout.addWidget(self.right)
 
-        self.button.clicked.connect(self.magic)
-
-
-
-
-    def magic(self):
-        self.text.setText(random.choice(self.hello))
+    @QtCore.Slot(list)
+    def updateCOMPorts(self, portlist):
+        self.dropdown.clear()
+        self.dropdown.addItems(portlist)

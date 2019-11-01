@@ -36,9 +36,7 @@ class MainWindow(QtWidgets.QMainWindow):
         # self.setWindowIcon(QtGui.QIcon('assets/icon.png'))
         self.setGeometry(50, 50, 1600, 900)
         set_background_color(self, 'white')
-        self.setGeometry(50, 50, 1500, 800)
 
-        # self.setCentralWidget(self.terminal.view)
         self._center()
         self.raise_()
         self.activateWindow()
