@@ -9,6 +9,7 @@ from matplotlib.backends.backend_qt5agg import NavigationToolbar2QT as Navigatio
 from matplotlib.figure import Figure
 
 from serialmanager import SerialManager
+from parse import SerialParser
 
 class FilePicker(QtWidgets.QWidget):
 
@@ -37,7 +38,7 @@ class ResultView(QtWidgets.QWidget):
         self.layout = QtWidgets.QVBoxLayout(self)
         self.plot = MatplotlibWidget()
         self.layout.addWidget(self.plot)
-        self.plot.update_plot(range(5))
+        # self.plot.update_plot(range(5))
 
         self.forceResult = QtWidgets.QLabel('3.5 N')
         self.accelResult = QtWidgets.QLabel('20 mm/s^2')
@@ -62,6 +63,7 @@ class TextOutputView(QtWidgets.QWidget):
 
 
         self.output = QtWidgets.QTextEdit()
+        self.output.setReadOnly(True)
         self.input = QtWidgets.QLineEdit()
 
         self.layout = QtWidgets.QVBoxLayout(self)
@@ -103,11 +105,11 @@ class MatplotlibWidget(QtWidgets.QWidget):
         self.line, *_ = self.ax.plot([])
 
     # @Slot(list)
-    def update_plot(self, data):
-        self.line.set_data(range(len(data)), data)
+    def update_plot(self, t, y):
+        self.line.set_data(t, y)
 
-        self.ax.set_xlim(0, len(data))
-        self.ax.set_ylim(min(data), max(data))
+        self.ax.set_xlim(0, len(y))
+        self.ax.set_ylim(min(y), max(y))
         self.canvas.draw()
 
 class MainView(QtWidgets.QWidget):
@@ -121,6 +123,8 @@ class MainView(QtWidgets.QWidget):
         # portsString = ''.join([p.device + '\n' for p in availablePorts])
 
 
+        self.parser = SerialParser()
+
 
         self.toolbar = toolbar
 
@@ -132,6 +136,7 @@ class MainView(QtWidgets.QWidget):
 
 
         self.serialManager = SerialManager()
+        self.serialManager.textStream.connect(self.parser.parse_line)
 
         # self.serialManager.newCOMPorts.connect(self.updateCOMPorts)
         # self.serialManager.refresh()
@@ -160,6 +165,7 @@ class MainView(QtWidgets.QWidget):
         self.left = ResultView()
         self.right = TextOutputView()
 
+        self.parser.newDataSet.connect(self.left.plot.update_plot)
         self.serialManager.textStream.connect(self.right.addText)
 
         self.layout.addWidget(self.left)

@@ -340,12 +340,13 @@ fn main() -> ! {
             if let Some(ref mut encoder) = ENCODER1.borrow(cs).borrow_mut().deref_mut() {
                 if encoder.ready() {
                     let data = encoder.get();
-                    writeln!(tx, "Encoder 1").unwrap();
+                    writeln!(tx, "Start Encoder 1").unwrap();
                     for x in data {
                         unsafe {
                             writeln!(tx, "{}: {}", x.time, x.pos).unwrap();
                         }
                     }
+                    writeln!(tx, "End").unwrap();
                     encoder.reset();
 
                 }

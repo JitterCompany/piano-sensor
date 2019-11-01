@@ -31,7 +31,8 @@ class SerialManager(QtCore.QObject):
         self._reader_alive = None
         self.receiver_thread = None
 
-        self.rx_decoder = codecs.getincrementaldecoder('UTF-8')('replace')
+        # self.rx_decoder = codecs.getincrementaldecoder('UTF-8')('replace')
+        self.rx_decoder = codecs.getdecoder('UTF-8') #('replace')
 
 
         # portsString = ''.join([p.device + '\n' for p in self.availablePorts])
@@ -90,14 +91,13 @@ class SerialManager(QtCore.QObject):
         try:
             while self._reader_alive:
                 # read all that is there or wait for one byte
-                data = self.serial.read(self.serial.in_waiting or 1)
+                # data = self.serial.read(self.serial.in_waiting or 1)
+                data = self.serial.readline()
                 if data:
-                    text = self.rx_decoder.decode(data)
-                    # for transformation in self.rx_transformations:
-                    #     text = transformation.rx(text)
-                    print(text)
+                    # text = self.rx_decoder.decode(data)
+                    text, length = self.rx_decoder(data[:-1]) # get rid of newline
+                    # text = ''.join([chr(c) for c in data])
                     self.textStream.emit(text)
-                    # self.console.write(text)
 
         except serial.SerialException:
             self.alive = False
