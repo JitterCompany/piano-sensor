@@ -19,7 +19,7 @@ pub struct EncoderPair {
 // }
 
 pub struct Encoder<CHA: InputPin, CHB: InputPin, LED: OutputPin> {
-    data: Vec<EncoderPair, U200>,
+    data: Vec<EncoderPair, U300>,
     ready: bool,
     start: u32,
     channel_a: CHA,
@@ -116,7 +116,7 @@ impl<CHA: InputPin<Error = Void>, CHB: InputPin<Error = Void>, LED: OutputPin<Er
             self.max = abs_pos;
         }
 
-        if self.max > 10 {
+        if self.max > 30 {
             if self.start != 0 && position == 0 {
                 self.ready = true;
             }
@@ -127,7 +127,7 @@ impl<CHA: InputPin<Error = Void>, CHB: InputPin<Error = Void>, LED: OutputPin<Er
 
     pub fn ready(&mut self) -> bool { self.ready }
 
-    pub fn get(&mut self) -> &Vec<EncoderPair, U200> { &self.data }
+    pub fn get(&mut self) -> &Vec<EncoderPair, U300> { &self.data }
 
     pub fn position(&mut self) -> i16 {
         self.position

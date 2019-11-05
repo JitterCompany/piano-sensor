@@ -9,6 +9,8 @@ from matplotlib.figure import Figure
 
 from analysis import KeyPress
 
+import numpy as np
+
 plt.rcParams['axes.grid'] = True
 
 class FilePicker(QtWidgets.QWidget):
@@ -122,31 +124,30 @@ class MatplotlibWidget(QtWidgets.QWidget):
         self.rect = None
 
 
-    def plot(self, x, y, z, title, xlabel, ylabel):
+    def plot(self, x, y, z, title, xlabel, ylabel, plot_z_average=False):
         self.clear()
         self.ax.set_xlabel(xlabel)
         self.ax.set_ylabel(ylabel)
         self.ax.set_title(title)
 
-        self.line1.set_data(x, y)
+        self.ax.plot(x, y, label='raw')
 
         self.ax.set_xlim(min(x), max(x))
         self.ax.set_ylim(min(y), max(y))
 
         if z is not None and len(z):
-            self.line2.set_data(x, z)
+            self.ax.plot(x, z, label='fitted')
+            if plot_z_average:
+                self.ax.plot(x, np.repeat(np.mean(z), len(x)), label='mean')
 
+        self.ax.legend()
         self.canvas.draw()
 
     def clear(self):
         if self.rect:
             self.rect.remove()
             self.rect = None
-
-        # self.line1.set_data([])
-        # self.line2.set_data([])
-
-
+        self.ax.clear()
 
     def show_speed(self, k: KeyPress):
         self.clear()
@@ -157,7 +158,7 @@ class MatplotlibWidget(QtWidgets.QWidget):
     def show_accel(self, k: KeyPress):
         self.clear()
         t, accel, accel_fitted = k.accel_data()
-        self.plot(t, accel, accel_fitted, title='Acceleration vs time', xlabel='Time [ms]', ylabel='Speed [mm/s^2]')
+        self.plot(t, accel, accel_fitted, title='Acceleration vs time', xlabel='Time [ms]', ylabel='Speed [mm/s^2]', plot_z_average=True)
 
 
     def show_position(self, k: KeyPress):
