@@ -9,7 +9,42 @@ from serial.tools import list_ports
 from tools import set_background_color
 from views import MainView
 
+from comports import SerialConnection, SerialParser
+from analysis import KeyPress
+
 FPS = 20
+
+
+class PianoApp(QtWidgets.QApplication):
+
+    def __init__(self):
+        super(PianoApp, self).__init__()
+
+        self.SerialConnection = SerialConnection()
+
+
+        self.window = MainWindow()
+        self.window.setWindowTitle("Piano Force Sensor")
+
+        self.window.show()
+        signal.signal(signal.SIGINT, self.window.quit)
+
+        self.toolbar = QtWidgets.QToolBar()
+        self.window.addToolBar(self.toolbar)
+        self.mainView = MainView(self.toolbar, self.SerialConnection.getDropdownWidget())
+        self.window.setCentralWidget(self.mainView)
+
+        self.mainView.refresh.connect(self.SerialConnection.refresh)
+
+        self.parser = SerialParser()
+        self.SerialConnection.textStream.connect(self.parser.parse_line)
+        self.SerialConnection.textStream.connect(self.mainView.textOutputView.addText)
+
+        # self.parser.newDataSet.connect
+        # self.parser.newDataSet.connect(estimateAcceleration)
+
+        self.parser.newDataSet.connect(lambda i, t, p: self.mainView.resultsView.new_results(KeyPress(i, t,p)))
+
 
 class MainWindow(QtWidgets.QMainWindow):
     """
@@ -33,13 +68,15 @@ class MainWindow(QtWidgets.QMainWindow):
 
     def _setupView(self):
         """Initialize Main Window"""
-        # self.setWindowIcon(QtGui.QIcon('assets/icon.png'))
+        self.setWindowIcon(QtGui.QIcon('assets/icon.jpeg'))
         self.setGeometry(50, 50, 1600, 900)
-        set_background_color(self, 'white')
+        # set_background_color(self, '#5a5d73')
+        set_background_color(self, 'gray')
 
         self._center()
         self.raise_()
         self.activateWindow()
+
 
     def closeEvent(self, event):
         """Handle window close event"""
@@ -66,6 +103,13 @@ class MainWindow(QtWidgets.QMainWindow):
         frameGm.moveCenter(centerPoint)
         self.move(frameGm.topLeft())
 
+        # qRect = self.frameGeometry()
+        # centerPoint = QtWidgets.QDesktopWidget().availableGeometry().center()
+        # qRect.moveCenter(centerPoint)
+        # self.move(qRect.topLeft())
+
+
+
     def _update(self):
         """ Gui Thread poll """
         if not self._running:
@@ -75,22 +119,7 @@ class MainWindow(QtWidgets.QMainWindow):
         pass
 
 if __name__ == "__main__":
-    app = QtWidgets.QApplication([])
-
-
-    window = MainWindow()
-
-    window.setWindowTitle("Piano Force Sensor")
-
-
-    window.show()
-    signal.signal(signal.SIGINT, window.quit)
-    # signal.signal(signal.SIGINT, signal.SIG_DFL)
-
-    toolbar = QtWidgets.QToolBar()
-    window.addToolBar(toolbar)
-    widget = MainView(toolbar)
-    window.setCentralWidget(widget)
+    app = PianoApp()
 
     if sys.flags.interactive != 1:
         sys.exit(app.exec_())

@@ -10,7 +10,7 @@ from serial.tools import hexlify_codec
 
 codecs.register(lambda c: hexlify_codec.getregentry() if c == 'hexlify' else None)
 
-class SerialManager(QtCore.QObject):
+class SerialConnection(QtCore.QObject):
 
 
     # newCOMPorts = QtCore.Signal(list)
@@ -18,19 +18,19 @@ class SerialManager(QtCore.QObject):
     textStream = QtCore.Signal(str)
 
     def __init__(self):
-        super(SerialManager, self).__init__()
+        super(SerialConnection, self).__init__()
 
         self.dropdown = QtWidgets.QComboBox()
         self.dropdown.currentIndexChanged.connect(self.selectCOMPort)
 
         self.availablePorts = None
-        self.refresh()
 
         self.serial = None
-        self.alive = None
-        self._reader_alive = None
+        self.alive = False
+        self._reader_alive = False
         self.receiver_thread = None
 
+        self.refresh()
         # self.rx_decoder = codecs.getincrementaldecoder('UTF-8')('replace')
         self.rx_decoder = codecs.getdecoder('UTF-8') #('replace')
 
@@ -39,14 +39,13 @@ class SerialManager(QtCore.QObject):
 
     @QtCore.Slot(str)
     def selectCOMPort(self, index):
-        if index:
+        if index > 0:
             port = self.availablePorts[index-1]
             print('select', port)
             self.change_port(port)
         else:
             self._stop_reader()
             self.serial = None
-
 
     def getDropdownWidget(self):
         return self.dropdown
@@ -57,8 +56,6 @@ class SerialManager(QtCore.QObject):
         self.dropdown.addItem('--- Select COM Port ---')
         self.dropdown.addItems([p.device for p in self.availablePorts])
         # self.newCOMPorts.emit([p.device for p in self.availablePorts])
-
-
 
     def change_port(self, port: serial.Serial):
 
@@ -82,9 +79,11 @@ class SerialManager(QtCore.QObject):
     def _stop_reader(self):
         """Stop reader thread only, wait for clean exit of thread"""
         self._reader_alive = False
-        if hasattr(self.serial, 'cancel_read'):
+        if self.serial and hasattr(self.serial, 'cancel_read'):
             self.serial.cancel_read()
-        self.receiver_thread.join()
+
+        if self.receiver_thread:
+            self.receiver_thread.join()
 
     def reader(self):
         """loop and copy serial->console"""
@@ -103,3 +102,40 @@ class SerialManager(QtCore.QObject):
             self.alive = False
             # self.console.cancel()
             raise       # XXX handle instead of re-raise?
+
+
+START = 'Start Encoder'
+END = 'End'
+
+class SerialParser(QtCore.QObject):
+
+
+    newDataSet = QtCore.Signal(int, list, list)
+
+    def __init__(self):
+        super(SerialParser, self).__init__()
+        self.started = False
+        self.timestamps = []
+        self.positions = []
+        self.current_encoder = None
+
+    @QtCore.Slot(str)
+    def parse_line(self, line: str):
+
+        if line.startswith(END):
+            self.started = False
+            self.newDataSet.emit(self.current_encoder, self.timestamps, self.positions)
+
+        if line.startswith(START):
+            self.current_encoder = int(line[len(START):])
+            self.started = True
+            self.timestamps = []
+            self.positions = []
+            return
+
+        if self.started:
+            res = line.split(":")
+            self.timestamps.append(int(res[0]))
+            self.positions.append(int(res[1]))
+
+

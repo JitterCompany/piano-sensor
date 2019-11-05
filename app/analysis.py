@@ -10,8 +10,9 @@ TICKS_PER_MM = 75/25.4 * 4
 
 class KeyPress:
 
-    def __init__(self, timestamps: list, positionData: list):
+    def __init__(self, encoder: int, timestamps: list, positionData: list):
 
+        self.encoder = encoder
         record_threshold_min_mm = 1
         complete_threshold_mm = 15
         self.timestamps, i = np.unique(np.array(timestamps), return_index=True)
@@ -46,7 +47,9 @@ class KeyPress:
 
         rise_time = self.t[-1] - self.t[0]
 
-        return rise_time, average_acceleration
+        force_N = (DOWNWEIGHTS_g[self.encoder - 1] * average_acceleration) / 1000
+
+        return rise_time, average_acceleration, force_N
 
     def speed_data(self):
         time_s = self.t / 1000
