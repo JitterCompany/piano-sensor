@@ -24,8 +24,14 @@ extern crate heapless;
 use heapless::Vec;
 use heapless::consts::*;
 
+use heapless::{
+    pool,
+    pool::singleton::{Box, Pool},
+};
+
 use arrayvec::ArrayString;
 
+pool!(P: [u8; 128]);
 
 #[rtfm::app(device = stm32f1xx_hal::pac, peripherals = true)]
 const APP: () = {
@@ -42,13 +48,18 @@ const APP: () = {
                     gpioa::PA5<Input<PullUp>>,
                     gpioc::PC13<Input<PullUp>>,
                     gpiob::PB8<Output<PushPull>>>,
-        encoder_vector: Vec<EncoderPair, U200>,
-        uart_string: ArrayString::<[u8; 1024]>,
+        encoder_vector: Vec<EncoderPair, U100>,
+        // uart_string: ArrayString::<[u8; 1024]>,
         // uart_string2: ArrayString::<[u8; 4*1024]>,
     }
 
     #[init]
     fn init(cx: init::Context) -> init::LateResources {
+
+        static mut MEMORY: [u8; 4096] = [0; 4096];
+
+        // Increase the capacity of the memory pool by ~4
+        P::grow(MEMORY);
 
         // Cortex-M peripherals
         let _core: cortex_m::Peripherals = cx.core;
@@ -203,15 +214,15 @@ const APP: () = {
             exti: exti,
             encoder1: encoder1,
             encoder_vector: Vec::new(),
-            uart_string: ArrayString::new(),
+            // uart_string: ArrayString::new(),
             // uart_string2: ArrayString::new(),
         }
     }
 
-    #[idle]
-    fn idle(cx: idle::Context) -> ! {
-        loop {}
-    }
+    // #[idle]
+    // fn idle(cx: idle::Context) -> ! {
+    //     loop {}
+    // }
 
     #[task(binds = USART2, resources = [rx2], priority = 1)]
     fn usart2(cx: usart2::Context) {
@@ -239,46 +250,83 @@ const APP: () = {
         cx.resources.timer.clear_update_interrupt_flag();
     }
 
-    #[task(resources = [uart_string, tx2], priority = 3)]
-    fn send(cx: send::Context) {
+    #[task(resources = [tx2], priority = 3)]
+    fn send(cx: send::Context,  buffer: Box<P>) {
 
         let send::Resources {
             tx2,
-            uart_string
         } = cx.resources;
 
-        writeln!(tx2, "test: OK1").unwrap();
-        writeln!(tx2, "test: OK2").unwrap();
+        // writeln!(tx2, "test: OK1").unwrap();
+        // writeln!(tx2, "test: OK2").unwrap();
 
-        for byte in uart_string.as_str().bytes() {
-            nb::block!(tx2.write(byte)).unwrap();
-        }
-        uart_string.clear();
+
+
+        writeln!(tx2, "box byte 0: {}", buffer[0]).unwrap();
+        writeln!(tx2, "box byte 1: {}", buffer[1]).unwrap();
+
+        buffer.iter().for_each(|b| {
+           nb::block!(tx2.write(*b)).unwrap()
+        });
+        // for byte in uart_string.as_str().bytes() {
+        //     nb::block!(tx2.write(byte)).unwrap();
+        // }
+        // uart_string.clear();
 
     }
 
 
-    #[task(priority = 2, resources=[encoder_vector, uart_string], spawn = [send], capacity = 10)]
+    #[task(priority = 2, resources=[encoder_vector], spawn = [send], capacity = 10)]
     fn enc_buffer(cx: enc_buffer::Context, data_point: EncoderPair, ready: bool) {
 
         let enc_buffer::Resources {
-            mut uart_string,
             encoder_vector,
         } = cx.resources;
 
         encoder_vector.push(data_point).ok();
         if ready {
-            let mut count = 0;
-            uart_string.lock(|uart_string| {
-                for x in encoder_vector {
-                    let t = x.get_time();
-                    let v = x.get_position();
-                    writeln!(uart_string, "{}:{}", count, v).unwrap();
-                    count += 1;
-                }
+            // claim a memory block, leave it uninitialized and ..
 
-            });
-            cx.spawn.send().unwrap();
+            let mut x = P::alloc().unwrap().freeze();
+            x.iter_mut().for_each(|x| *x = 1);
+            x[1] = 2;
+
+
+            let mut uart_string: ArrayString::<[u8; 2*1024]> = ArrayString::new();
+
+            let mut count = 0;
+            for x in encoder_vector {
+                let t = x.get_time();
+                let v = x.get_position();
+                writeln!(uart_string, "{}:{}", count, v).unwrap();
+                count += 1;
+            }
+
+            let mut i = 0;
+            for byte in uart_string.as_str().bytes() {
+                x[i] = byte;
+                i += 1;
+            }
+
+            cx.spawn.send(x).ok().unwrap();
+
+            // let buffer = P::alloc().unwrap();
+
+            // buffer.iter_mut().for_each(|x| *x = 1);
+            // for i in 1..10 {
+            //     buffer.write(i as u8)
+            // }
+
+            // let frozen_buffer = buffer.freeze();
+
+            // let mut count = 0;
+            //     for x in encoder_vector {
+            //         let t = x.get_time();
+            //         let v = x.get_position();
+            //         writeln!(uart_string, "{}:{}", count, v).unwrap();
+            //         count += 1;
+            //     }
+
         }
     }
 

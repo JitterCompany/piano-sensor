@@ -13,7 +13,6 @@ set mem inaccessible-by-default off
 break Reset
 break main
 break main.rs:190
-break idle
 
 load
 
