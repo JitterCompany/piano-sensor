@@ -5,6 +5,8 @@
 extern crate panic_halt;
 
 use core::fmt::Write;
+// use core::fmt;
+
 extern crate embedded_hal;
 use embedded_hal::digital::v2::OutputPin;
 
@@ -21,11 +23,14 @@ use encoder::{Encoder, Channel, EncoderPair};
 extern crate heapless;
 use heapless::Vec;
 use heapless::consts::*;
+
+use arrayvec::ArrayString;
+
+
 #[rtfm::app(device = stm32f1xx_hal::pac, peripherals = true)]
 const APP: () = {
 
     struct Resources {
-        #[init(0)]
         time_ms: u32,
         led: PB12<Output<PushPull>>,
         timer: CountDownTimer<pac::TIM1>,
@@ -37,6 +42,9 @@ const APP: () = {
                     gpioa::PA5<Input<PullUp>>,
                     gpioc::PC13<Input<PullUp>>,
                     gpiob::PB8<Output<PushPull>>>,
+        encoder_vector: Vec<EncoderPair, U200>,
+        uart_string: ArrayString::<[u8; 1024]>,
+        // uart_string2: ArrayString::<[u8; 4*1024]>,
     }
 
     #[init]
@@ -151,7 +159,7 @@ const APP: () = {
             _device.USART2,
             (uart2_tx, uart2_rx),
             &mut afio.mapr,
-            Config::default().baudrate(115200.bps()),
+            Config::default().baudrate(2000000.bps()),
             clocks,
             &mut rcc.apb1,
         );
@@ -171,7 +179,7 @@ const APP: () = {
             _device.USART3,
             (uart3_tx, uart3_rx),
             &mut afio.mapr,
-            Config::default().baudrate(115200.bps()),
+            Config::default().baudrate(2000000.bps()),
             clocks,
             &mut rcc.apb1,
         );
@@ -186,61 +194,26 @@ const APP: () = {
 
         // Return the initialised resources.
         init::LateResources {
+            time_ms: 0,
             led: led,
             timer: timer,
             rx2: rx2,
             tx2: tx2,
             tx3: tx3,
             exti: exti,
-            encoder1: encoder1
+            encoder1: encoder1,
+            encoder_vector: Vec::new(),
+            uart_string: ArrayString::new(),
+            // uart_string2: ArrayString::new(),
         }
     }
 
-    // #[idle(resources=[encoder1, tx2])]
-    // fn idle(cx: idle::Context) -> ! {
-
-    //     let idle::Resources {
-    //         mut encoder1,
-    //         tx2
-    //     } = cx.resources;
-
-
-    //     loop {
-    //         if encoder1.ready() {
-    //             let data = encoder1.get();
-    //             writeln!(tx2, "Start Encoder 1").unwrap();
-    //             for x in data {
-    //                 unsafe {
-    //                     writeln!(tx2, "{}: {}", x.time, x.pos).unwrap();
-    //                 }
-    //             }
-    //             writeln!(tx2, "End").unwrap();
-    //             encoder1.reset();
-
-    //         }
-
-    //     }
-    // }
-
-    #[task(resources = [tx2, encoder1], priority = 1)]
-    fn send(cx: send::Context) {
-
-        let send::Resources {
-            tx2,
-            mut encoder1
-        } = cx.resources;
-        encoder1.lock(|encoder1| {
-            let data = encoder1.get();
-            for x in data {
-                unsafe {
-                    writeln!(tx2, "{}: {}", x.time, x.pos).unwrap();
-                }
-            }
-        });
-
+    #[idle]
+    fn idle(cx: idle::Context) -> ! {
+        loop {}
     }
 
-    #[task(binds = USART2, resources = [rx2], priority = 2)]
+    #[task(binds = USART2, resources = [rx2], priority = 1)]
     fn usart2(cx: usart2::Context) {
 
         let usart2::Resources {
@@ -260,17 +233,63 @@ const APP: () = {
 
     #[task(binds = TIM1_UP, resources = [timer, time_ms], priority = 4)]
     fn tim1_up(cx: tim1_up::Context) {
-        // *cx.resources.time_ms += 1;
+        *cx.resources.time_ms += 1;
 
         // Clear the interrupt flag.
         cx.resources.timer.clear_update_interrupt_flag();
     }
 
+    #[task(resources = [uart_string, tx2], priority = 3)]
+    fn send(cx: send::Context) {
+
+        let send::Resources {
+            tx2,
+            uart_string
+        } = cx.resources;
+
+        writeln!(tx2, "test: OK1").unwrap();
+        writeln!(tx2, "test: OK2").unwrap();
+
+        for byte in uart_string.as_str().bytes() {
+            nb::block!(tx2.write(byte)).unwrap();
+        }
+        uart_string.clear();
+
+    }
+
+
+    #[task(priority = 2, resources=[encoder_vector, uart_string], spawn = [send], capacity = 10)]
+    fn enc_buffer(cx: enc_buffer::Context, data_point: EncoderPair, ready: bool) {
+
+        let enc_buffer::Resources {
+            mut uart_string,
+            encoder_vector,
+        } = cx.resources;
+
+        encoder_vector.push(data_point).ok();
+        if ready {
+            let mut count = 0;
+            uart_string.lock(|uart_string| {
+                for x in encoder_vector {
+                    let t = x.get_time();
+                    let v = x.get_position();
+                    writeln!(uart_string, "{}:{}", count, v).unwrap();
+                    count += 1;
+                }
+
+            });
+            cx.spawn.send().unwrap();
+        }
+    }
+
     /**
      *Ch A interrupt
     */
-    #[task(binds = EXTI9_5, resources = [encoder1, time_ms, exti], priority = 3, spawn = [send])]
+    #[task(binds = EXTI9_5, resources = [encoder1, time_ms, exti], priority = 4, spawn = [enc_buffer])]
     fn encoder_a(cx: encoder_a::Context) {
+
+
+        // encoder_isr(cx, Channel::A);
 
         let encoder_a::Resources {
             encoder1,
@@ -278,7 +297,6 @@ const APP: () = {
             exti
         } = cx.resources;
 
-        // encoder_isr(Channel::A);
         let channel = Channel::A;
 
         let pr = exti.pr.read();
@@ -288,26 +306,25 @@ const APP: () = {
                 w.pr5().set_bit();
                 w.pr13().set_bit()
             });
-            encoder1.update(&channel, 10);
-        }
-        if encoder1.ready() {
-            encoder1.set_ready(false);
-            cx.spawn.send().unwrap();
+            let data_point = encoder1.update(&channel, 10);
+            cx.spawn.enc_buffer(data_point, encoder1.ready()).ok();
         }
     }
 
     /**
      *Ch B interrupt
     */
-    #[task(binds = EXTI15_10, resources = [encoder1, time_ms, exti], priority = 3, spawn = [send])]
+    #[task(binds = EXTI15_10, resources = [encoder1, time_ms, exti], priority = 4, spawn = [enc_buffer])]
     fn encoder_b(cx: encoder_b::Context) {
+
+        // encoder_isr(cx, Channel::B);
+
         let encoder_b::Resources {
             encoder1,
             time_ms,
             exti
         } = cx.resources;
 
-        // encoder_isr(Channel::A);
         let channel = Channel::B;
 
         let pr = exti.pr.read();
@@ -317,17 +334,15 @@ const APP: () = {
                 w.pr5().set_bit();
                 w.pr13().set_bit()
             });
-            encoder1.update(&channel, 10);
-        }
-        if encoder1.ready() {
-            encoder1.set_ready(false);
-            cx.spawn.send().unwrap();
+            let data_point = encoder1.update(&channel, 10);
+            cx.spawn.enc_buffer(data_point, encoder1.ready()).ok();
         }
     }
 
      // Interrupt handlers used to dispatch software tasks
     extern "C" {
         fn USART1();
+        fn SPI1();
     }
 
 
