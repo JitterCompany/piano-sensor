@@ -5,6 +5,7 @@
 
 extern crate embedded_hal;
 use embedded_hal::digital::v2::{InputPin, OutputPin};
+use core::convert::Infallible;
 
 #[repr(packed)]
 pub struct EncoderPair {
@@ -16,6 +17,11 @@ impl EncoderPair {
     pub fn get_time(&self) -> u32 { self.time }
 
     pub fn get_position(&self) -> i16 { self.pos }
+}
+
+pub trait EncoderInterface {
+    fn update(&mut self, channel: &Channel, timestamp: u32) -> Option<EncoderPair>;
+    fn ready(&mut self) -> bool;
 }
 
 pub struct Encoder<CHA: InputPin, CHB: InputPin, LED: OutputPin> {
@@ -35,33 +41,17 @@ pub enum Channel {
     B
 }
 
+// impl<CHA: InputPin<Error = Infallible>, CHB: InputPin<Error = Infallible>, LED: OutputPin<Error = Infallible>> EncoderInterface for Encoder<CHA, CHB, LED> {
+impl<CHA, CHB, LED> EncoderInterface for Encoder<CHA, CHB, LED>
+    where
+    CHA: InputPin<Error = Infallible>,
+    CHB: InputPin<Error = Infallible>,
+    LED: OutputPin<Error = Infallible>
+    {
 
-impl<CHA: InputPin<Error = core::convert::Infallible>, CHB: InputPin<Error = core::convert::Infallible>, LED: OutputPin<Error = core::convert::Infallible>> Encoder<CHA, CHB, LED> {
 
-    pub fn new(ch_a: CHA, ch_b: CHB, led: LED) -> Self {
-        Self {
-            // data: Vec::new(),
-            ready: false,
-            done: false,
-            start: 0,
-            channel_a: ch_a,
-            channel_b: ch_b,
-            led: led,
-            position: 0,
-            max: 0
-        }
-    }
 
-    pub fn reset(&mut self) {
-        // self.data.clear();
-        self.ready = false;
-        self.start = 0;
-        self.done = false;
-        self.max = 0;
-        self.led.set_low().unwrap();
-    }
-
-    pub fn update(&mut self, channel: &Channel, timestamp: u32) -> Option<EncoderPair> {
+    fn update(&mut self, channel: &Channel, timestamp: u32) -> Option<EncoderPair> {
         let a: bool = self.channel_a.is_high().unwrap();
         let b: bool = self.channel_b.is_high().unwrap();
         match *channel {
@@ -92,6 +82,47 @@ impl<CHA: InputPin<Error = core::convert::Infallible>, CHB: InputPin<Error = cor
 
     }
 
+    fn ready(&mut self) -> bool {
+        let is_ready = self.ready;
+        if is_ready {
+            self.ready = false;
+            self.done = true;
+            self.led.set_high().unwrap();
+            // self.reset();
+        }
+        is_ready
+    }
+
+
+}
+
+
+impl<CHA: InputPin<Error = Infallible>, CHB: InputPin<Error = Infallible>, LED: OutputPin<Error = Infallible>> Encoder<CHA, CHB, LED> {
+
+    pub fn new(ch_a: CHA, ch_b: CHB, led: LED) -> Self {
+        Self {
+            // data: Vec::new(),
+            ready: false,
+            done: false,
+            start: 0,
+            channel_a: ch_a,
+            channel_b: ch_b,
+            led: led,
+            position: 0,
+            max: 0
+        }
+    }
+
+    pub fn reset(&mut self) {
+        // self.data.clear();
+        self.ready = false;
+        self.start = 0;
+        self.done = false;
+        self.max = 0;
+        self.led.set_low().unwrap();
+    }
+
+
     fn new_value(&mut self, timestamp: u32, position: i16) -> Option<EncoderPair> {
 
         // TODO: return optional
@@ -121,7 +152,7 @@ impl<CHA: InputPin<Error = core::convert::Infallible>, CHB: InputPin<Error = cor
             }
         }
 
-        if abs_pos < 3 {
+        if abs_pos < 60 {
             self.reset();
             return None
         }
@@ -133,16 +164,6 @@ impl<CHA: InputPin<Error = core::convert::Infallible>, CHB: InputPin<Error = cor
         }
     }
 
-    pub fn ready(&mut self) -> bool {
-        let is_ready = self.ready;
-        if is_ready {
-            self.ready = false;
-            self.done = true;
-            self.led.set_high().unwrap();
-            // self.reset();
-        }
-        is_ready
-    }
 
     pub fn set_ready(&mut self, ready: bool) { self.ready = ready }
 
