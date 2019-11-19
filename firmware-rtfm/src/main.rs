@@ -25,7 +25,6 @@ use heapless::Vec;
 use heapless::consts::*;
 
 use heapless::{
-    consts::*,
     i,
     spsc::{Consumer, Producer, Queue},
 };
@@ -224,20 +223,20 @@ const APP: () = {
     // }
 
     #[task(binds = USART2, resources = [rx2], priority = 1)]
-    fn usart2(cx: usart2::Context) {
+    fn usart2(_cx: usart2::Context) {
 
-        let usart2::Resources {
-            rx2
-        } = cx.resources;
+        // let usart2::Resources {
+        //     rx2
+        // } = cx.resources;
 
-        match rx2.read() {
-            Ok(b) => {
-                // tx2.write(b).unwrap();
-            }
-            Err(_e) => {
-                // writeln!(tx2, "Serial Error: {:?}", _e).unwrap();
-            }
-        }
+        // match rx2.read() {
+        //     Ok(b) => {
+        //         // tx2.write(b).unwrap();
+        //     }
+        //     Err(_e) => {
+        //         // writeln!(tx2, "Serial Error: {:?}", _e).unwrap();
+        //     }
+        // }
 
     }
 
@@ -283,7 +282,6 @@ const APP: () = {
         }
 
         if ready {
-            let mut count = 0;
             for x in encoder_vector.iter() {
                 let t = x.get_time();
                 let v = x.get_position();
@@ -292,7 +290,6 @@ const APP: () = {
                 for byte in uart_string.as_str().bytes() {
                     p.enqueue(byte).unwrap();
                 }
-                count += 1;
             }
             encoder_vector.clear();
             cx.spawn.send().ok();
@@ -332,10 +329,6 @@ const APP: () = {
 
             let datapoint = encoder1.update(&channel, current_time);
             cx.spawn.enc_buffer(datapoint, encoder1.ready()).ok();
-
-            // if let Some(data_point) = option {
-            //     cx.spawn.enc_buffer(data_point, encoder1.ready()).ok();
-            // }
         }
     }
 
@@ -371,11 +364,6 @@ const APP: () = {
 
             let datapoint = encoder1.update(&channel, current_time);
             cx.spawn.enc_buffer(datapoint, encoder1.ready()).ok();
-            // let option = encoder1.update(&channel, current_time);
-            // if let Some(data_point) = option {
-            //     cx.spawn.enc_buffer(data_point, encoder1.ready()).ok();
-            // }
-
         }
     }
 

@@ -134,14 +134,14 @@ impl<CHA: InputPin<Error = core::convert::Infallible>, CHB: InputPin<Error = cor
     }
 
     pub fn ready(&mut self) -> bool {
-        let isReady = self.ready;
-        if isReady {
+        let is_ready = self.ready;
+        if is_ready {
             self.ready = false;
             self.done = true;
             self.led.set_high().unwrap();
             // self.reset();
         }
-        isReady
+        is_ready
     }
 
     pub fn set_ready(&mut self, ready: bool) { self.ready = ready }
