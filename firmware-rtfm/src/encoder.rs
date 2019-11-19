@@ -133,7 +133,8 @@ impl<CHA: InputPin<Error = core::convert::Infallible>, CHB: InputPin<Error = cor
     pub fn ready(&mut self) -> bool {
         let isReady = self.ready;
         if isReady {
-            self.ready = false
+            self.reset();
+            // self.ready = false
         }
         isReady
     }

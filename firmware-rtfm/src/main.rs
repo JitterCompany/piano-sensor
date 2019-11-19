@@ -47,15 +47,15 @@ const APP: () = {
                     gpioa::PA5<Input<PullUp>>,
                     gpioc::PC13<Input<PullUp>>,
                     gpiob::PB8<Output<PushPull>>>,
-        encoder_vector: Vec<EncoderPair, U100>,
-        p: Producer<'static, u8, U8192>,
-        c: Consumer<'static, u8, U8192>,
+        encoder_vector: Vec<EncoderPair, U400>,
+        p: Producer<'static, u8, U4096>,
+        c: Consumer<'static, u8, U4096>,
     }
 
     #[init]
     fn init(cx: init::Context) -> init::LateResources {
 
-        static mut Q: Queue<u8, U8192> = Queue(i::Queue::new());
+        static mut Q: Queue<u8, U4096> = Queue(i::Queue::new());
         let (p, c) = Q.split();
 
         // Cortex-M peripherals
@@ -241,7 +241,7 @@ const APP: () = {
 
     }
 
-    #[task(binds = TIM1_UP, resources = [timer, time_ms], priority = 4)]
+    #[task(binds = TIM1_UP, resources = [timer, time_ms], priority = 5)]
     fn tim1_up(cx: tim1_up::Context) {
         *cx.resources.time_ms += 1;
 
@@ -284,7 +284,7 @@ const APP: () = {
                 let t = x.get_time();
                 let v = x.get_position();
                 let mut uart_string: ArrayString::<[u8; 20]> = ArrayString::new();
-                writeln!(uart_string, "{}:{}", count, v).unwrap();
+                writeln!(uart_string, "{}:{}", t, v).unwrap();
                 for byte in uart_string.as_str().bytes() {
                     p.enqueue(byte).unwrap();
                 }
@@ -306,9 +306,15 @@ const APP: () = {
 
         let encoder_a::Resources {
             encoder1,
-            time_ms,
+            mut time_ms,
             exti
         } = cx.resources;
+
+        let mut current_time: u32 = 0;
+
+        time_ms.lock(|time_ms| {
+            current_time = *time_ms;
+        });
 
         let channel = Channel::A;
 
@@ -319,7 +325,7 @@ const APP: () = {
                 w.pr5().set_bit();
                 w.pr13().set_bit()
             });
-            let data_point = encoder1.update(&channel, 10);
+            let data_point = encoder1.update(&channel, current_time);
             cx.spawn.enc_buffer(data_point, encoder1.ready()).ok();
         }
     }
@@ -334,9 +340,15 @@ const APP: () = {
 
         let encoder_b::Resources {
             encoder1,
-            time_ms,
+            mut time_ms,
             exti
         } = cx.resources;
+
+        let mut current_time: u32 = 0;
+
+        time_ms.lock(|time_ms| {
+            current_time = *time_ms;
+        });
 
         let channel = Channel::B;
 
@@ -347,7 +359,7 @@ const APP: () = {
                 w.pr5().set_bit();
                 w.pr13().set_bit()
             });
-            let data_point = encoder1.update(&channel, 10);
+            let data_point = encoder1.update(&channel, current_time);
             cx.spawn.enc_buffer(data_point, encoder1.ready()).ok();
         }
     }
