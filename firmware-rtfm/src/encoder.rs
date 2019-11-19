@@ -21,11 +21,11 @@ impl EncoderPair {
 pub struct Encoder<CHA: InputPin, CHB: InputPin, LED: OutputPin> {
     // data: Vec<EncoderPair, U300>,
     ready: bool,
+    done: bool,
     start: u32,
     channel_a: CHA,
     channel_b: CHB,
     led: LED,
-    _prev_val: i16,
     position: i16,
     max: i16
 }
@@ -42,8 +42,8 @@ impl<CHA: InputPin<Error = core::convert::Infallible>, CHB: InputPin<Error = cor
         Self {
             // data: Vec::new(),
             ready: false,
+            done: false,
             start: 0,
-            _prev_val: 0,
             channel_a: ch_a,
             channel_b: ch_b,
             led: led,
@@ -56,14 +56,12 @@ impl<CHA: InputPin<Error = core::convert::Infallible>, CHB: InputPin<Error = cor
         // self.data.clear();
         self.ready = false;
         self.start = 0;
-        self._prev_val = 0;
+        self.done = false;
         self.max = 0;
-        {
-            self.led.set_low().unwrap();
-        }
+        self.led.set_low().unwrap();
     }
 
-    pub fn update(&mut self, channel: &Channel, timestamp: u32) -> EncoderPair {
+    pub fn update(&mut self, channel: &Channel, timestamp: u32) -> Option<EncoderPair> {
         let a: bool = self.channel_a.is_high().unwrap();
         let b: bool = self.channel_b.is_high().unwrap();
         match *channel {
@@ -75,7 +73,7 @@ impl<CHA: InputPin<Error = core::convert::Infallible>, CHB: InputPin<Error = cor
                     self.position += 1;
                     // COUNTER.increment(cs);
                 }
-                self.led.set_low().unwrap();
+                // self.led.set_low().unwrap();
             },
             Channel::B => {
                 if a == b {
@@ -85,7 +83,7 @@ impl<CHA: InputPin<Error = core::convert::Infallible>, CHB: InputPin<Error = cor
                     self.position -= 1;
                     // COUNTER.increment(cs);
                 }
-                self.led.set_high().unwrap();
+                // self.led.set_high().unwrap();
             }
         }
 
@@ -94,47 +92,54 @@ impl<CHA: InputPin<Error = core::convert::Infallible>, CHB: InputPin<Error = cor
 
     }
 
-    fn new_value(&mut self, timestamp: u32, position: i16) -> EncoderPair {
+    fn new_value(&mut self, timestamp: u32, position: i16) -> Option<EncoderPair> {
 
         // TODO: return optional
         // if self.ready {
         //     return
         // }
 
-        // let mut dataPoint: EncoderPair;
-        // if position != self._prev_val {
-            if self.start == 0 {
-                self.start = timestamp;
-            }
-            let t = timestamp - self.start; // & 0xFFFF;
 
-            // self.data.push(EncoderPair{time: t, pos: position}).ok();
-            let data_point = EncoderPair{time: t, pos: position};
+        if self.start == 0 {
+            self.start = timestamp;
+        }
+        let t = timestamp - self.start;
 
-            self._prev_val = position;
-        // }
+        let data_point = EncoderPair{time: t, pos: position};
+
 
         let abs_pos = position.abs();
         if abs_pos > self.max {
             self.max = abs_pos;
         }
 
-        if self.max > 30 {
-            if self.start != 0 && position == 0 {
-                self.ready = true;
+        if self.max > 100 {
+            if self.start != 0 && (abs_pos < (self.max - 50)) {
+                if !self.done {
+                    self.ready = true;
+                }
             }
-        } else if position == 0 {
-            self.reset();
         }
 
-        data_point
+        if abs_pos < 3 {
+            self.reset();
+            return None
+        }
+
+        if !self.done {
+            Some(data_point)
+        } else {
+            None
+        }
     }
 
     pub fn ready(&mut self) -> bool {
         let isReady = self.ready;
         if isReady {
-            self.reset();
-            // self.ready = false
+            self.ready = false;
+            self.done = true;
+            self.led.set_high().unwrap();
+            // self.reset();
         }
         isReady
     }

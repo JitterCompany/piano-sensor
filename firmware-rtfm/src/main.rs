@@ -47,7 +47,7 @@ const APP: () = {
                     gpioa::PA5<Input<PullUp>>,
                     gpioc::PC13<Input<PullUp>>,
                     gpiob::PB8<Output<PushPull>>>,
-        encoder_vector: Vec<EncoderPair, U400>,
+        encoder_vector: Vec<EncoderPair, U300>,
         p: Producer<'static, u8, U4096>,
         c: Consumer<'static, u8, U4096>,
     }
@@ -196,7 +196,7 @@ const APP: () = {
 
         // Configure the syst timer to trigger an update every second and enables interrupt
         let mut timer = Timer::tim1(_device.TIM1, &clocks, &mut rcc.apb2)
-            .start_count_down(1000.hz());
+            .start_count_down(10.khz());
         timer.listen(Event::Update);
 
 
@@ -257,7 +257,7 @@ const APP: () = {
             c
         } = cx.resources;
 
-        writeln!(tx2, "test: OK1").unwrap();
+        writeln!(tx2, "<===== New Dataset =====>").unwrap();
 
         while c.ready() {
             if let Some(byte) = c.dequeue() {
@@ -269,14 +269,18 @@ const APP: () = {
 
 
     #[task(priority = 2, resources=[encoder_vector, p], spawn = [send], capacity = 10)]
-    fn enc_buffer(cx: enc_buffer::Context, data_point: EncoderPair, ready: bool) {
+    fn enc_buffer(cx: enc_buffer::Context, data_point: Option<EncoderPair>, ready: bool) {
 
         let enc_buffer::Resources {
             encoder_vector,
             p,
         } = cx.resources;
 
-        encoder_vector.push(data_point).ok();
+        if let Some(data_point) = data_point {
+            encoder_vector.push(data_point).ok();
+        } else {
+            encoder_vector.clear();
+        }
 
         if ready {
             let mut count = 0;
@@ -325,8 +329,13 @@ const APP: () = {
                 w.pr5().set_bit();
                 w.pr13().set_bit()
             });
-            let data_point = encoder1.update(&channel, current_time);
-            cx.spawn.enc_buffer(data_point, encoder1.ready()).ok();
+
+            let datapoint = encoder1.update(&channel, current_time);
+            cx.spawn.enc_buffer(datapoint, encoder1.ready()).ok();
+
+            // if let Some(data_point) = option {
+            //     cx.spawn.enc_buffer(data_point, encoder1.ready()).ok();
+            // }
         }
     }
 
@@ -359,8 +368,14 @@ const APP: () = {
                 w.pr5().set_bit();
                 w.pr13().set_bit()
             });
-            let data_point = encoder1.update(&channel, current_time);
-            cx.spawn.enc_buffer(data_point, encoder1.ready()).ok();
+
+            let datapoint = encoder1.update(&channel, current_time);
+            cx.spawn.enc_buffer(datapoint, encoder1.ready()).ok();
+            // let option = encoder1.update(&channel, current_time);
+            // if let Some(data_point) = option {
+            //     cx.spawn.enc_buffer(data_point, encoder1.ready()).ok();
+            // }
+
         }
     }
 
