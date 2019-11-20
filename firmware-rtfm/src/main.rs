@@ -5,7 +5,7 @@
 extern crate panic_halt;
 
 use core::fmt::Write;
-// use core::fmt;
+use core::fmt;
 
 extern crate embedded_hal;
 use embedded_hal::digital::v2::OutputPin;
@@ -40,6 +40,19 @@ pub enum EncoderIndex {
     Encoder3,
     Encoder4,
     Encoder5,
+}
+
+impl fmt::Display for EncoderIndex {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+       match *self {
+           EncoderIndex::EncoderNone => write!(f, "-"),
+           EncoderIndex::Encoder1 => write!(f, "1"),
+           EncoderIndex::Encoder2 => write!(f, "2"),
+           EncoderIndex::Encoder3 => write!(f, "3"),
+           EncoderIndex::Encoder4 => write!(f, "4"),
+           EncoderIndex::Encoder5 => write!(f, "5"),
+       }
+    }
 }
 
 // type Enc1 = impl EncoderInterface;
@@ -347,20 +360,26 @@ const APP: () = {
         }
 
         if ready {
+            // header
+            let mut uart_string: ArrayString::<[u8; 20]> = ArrayString::new();
+            writeln!(uart_string, "START Encoder {}", ACTIVE_ENCODER).unwrap();
+            write_string_to_queue(p, &uart_string.as_str());
             for x in encoder_vector.iter() {
+                uart_string.clear();
                 let t = x.get_time();
                 let v = x.get_position();
-                let mut uart_string: ArrayString::<[u8; 20]> = ArrayString::new();
                 writeln!(uart_string, "{}:{}", t, v).unwrap();
-                for byte in uart_string.as_str().bytes() {
-                    p.enqueue(byte).unwrap();
-                }
+                write_string_to_queue(p, &uart_string.as_str());
             }
+            write_string_to_queue(p, "END");
+
             encoder_vector.clear();
             *ACTIVE_ENCODER = EncoderIndex::EncoderNone;
             cx.spawn.send().ok();
         }
     }
+
+
 
     /**
      *Ch A interrupt
@@ -438,6 +457,12 @@ const APP: () = {
 
 
 };
+
+fn write_string_to_queue(q: &mut Producer<'static, u8, U4096>, string: &str) {
+    for byte in string.bytes() {
+        q.enqueue(byte).unwrap();
+    }
+}
 
 fn encoder_isr(encoder: (&mut impl EncoderInterface, &mut impl EncoderInterface, &mut impl EncoderInterface, &mut impl EncoderInterface, &mut impl EncoderInterface),
     exti: &EXTI, t: u32, channel: Channel) -> Option<(EncoderIndex, Option<EncoderPair>, bool)> {
