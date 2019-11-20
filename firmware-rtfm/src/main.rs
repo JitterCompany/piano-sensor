@@ -4,11 +4,11 @@
 
 extern crate panic_halt;
 
-use core::fmt::Write;
-use core::fmt;
+use core::fmt::{self, Write};
 
-extern crate embedded_hal;
 use embedded_hal::digital::v2::OutputPin;
+
+use arrayvec::ArrayString;
 
 use stm32f1xx_hal::{
     prelude::*,
@@ -18,20 +18,17 @@ use stm32f1xx_hal::{
     gpio::{*, gpiob::PB12, Output, PushPull },
 };
 
-mod encoder;
-use encoder::{Encoder, Channel, EncoderPair, EncoderInterface};
-extern crate heapless;
-use heapless::Vec;
-use heapless::consts::*;
-
 use heapless::{
+    Vec,
     i,
     spsc::{Consumer, Producer, Queue},
+    consts::*
 };
 
-use arrayvec::ArrayString;
 
-// type EncoderIndex = u8;
+mod encoder;
+use encoder::{Encoder, Channel, EncoderPair, EncoderInterface};
+
 #[derive(PartialEq)]
 pub enum EncoderIndex {
     EncoderNone = 0,
@@ -55,7 +52,6 @@ impl fmt::Display for EncoderIndex {
     }
 }
 
-// type Enc1 = impl EncoderInterface;
 type Enc1 = Encoder<
     gpioa::PA5<Input<PullUp>>,
     gpioc::PC13<Input<PullUp>>,
@@ -75,7 +71,6 @@ type Enc4 = Encoder<
     gpioa::PA9<Input<PullUp>>,
     gpioa::PA10<Input<PullUp>>,
     gpiob::PB1<Output<PushPull>>>;
-
 
 type Enc5 = Encoder<
     gpioa::PA8<Input<PullUp>>,
@@ -387,9 +382,6 @@ const APP: () = {
     #[task(binds = EXTI9_5, resources = [encoder1, encoder2, encoder3, encoder4, encoder5, time_ms, exti], priority = 4, spawn = [enc_buffer])]
     fn encoder_a(cx: encoder_a::Context) {
 
-
-        // encoder_isr(cx, Channel::A);
-
         let encoder_a::Resources {
             encoder1,
             encoder2,
@@ -420,8 +412,6 @@ const APP: () = {
     */
     #[task(binds = EXTI15_10, resources = [encoder1, encoder2, encoder3, encoder4, encoder5, time_ms, exti], priority = 4, spawn = [enc_buffer])]
     fn encoder_b(cx: encoder_b::Context) {
-
-        // encoder_isr(cx, Channel::B);
 
         let encoder_b::Resources {
             encoder1,

@@ -1,5 +1,5 @@
 
-extern crate embedded_hal;
+// extern crate embedded_hal;
 use embedded_hal::digital::v2::{InputPin, OutputPin};
 use core::convert::Infallible;
 
