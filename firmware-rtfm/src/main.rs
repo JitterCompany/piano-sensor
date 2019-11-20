@@ -80,6 +80,9 @@ type Enc5 = Encoder<
 
 const BAUDRATE: u32 = 57_600;
 
+const ENCODER_PREFIX: &str = "KEY ";
+const ENCODER_SUFFIX: &str = "END\n";
+
 #[rtfm::app(device = stm32f1xx_hal::pac, peripherals = true)]
 const APP: () = {
 
@@ -149,7 +152,7 @@ const APP: () = {
         let pin_b15 = gpiob.pb15.into_pull_up_input(&mut gpiob.crh);
         let pin_c13 = gpioc.pc13.into_pull_up_input(&mut gpioc.crh);
 
-    // configure correct pins for external interrups
+        // configure correct pins for external interrups
         afio.exticr2.exticr2().modify(|_,w| unsafe {
             w.exti5().bits(0b0000);  //PA5 1A
             w.exti6().bits(0b0000);  //PA6 2A
@@ -293,22 +296,14 @@ const APP: () = {
             ext_p,
             ext_c,
             uart_in_buffer: ArrayString::new(),
-            // uart_string: ArrayString::new(),
-            // uart_string2: ArrayString::new(),
         }
     }
-
-    // #[idle]
-    // fn idle(cx: idle::Context) -> ! {
-    //     loop {}
-    // }
 
     #[task(binds = USART3, resources = [rx3, led, ext_p, uart_in_buffer], priority = 5, spawn=[send])]
     fn usart_in(cx: usart_in::Context) {
 
         let usart_in::Resources {
             rx3,
-            // mut tx2,
             led,
             ext_p,
             uart_in_buffer
@@ -328,62 +323,35 @@ const APP: () = {
                 }
 
                 if b == b'\n' {
-                // //     // led.toggle().unwrap();
-                // //     // match stringthing.as_ref() {
-                // //     //     "START" =>
-                // //     // }
-                    // write_string_to_queue(ext_p, uart_in_buffer);
-                    // write_string_to_queue(ext_p, "a\n");
-
-                    for byte in uart_in_buffer.bytes() {
-                        ext_p.enqueue(byte).unwrap();
+                    if uart_in_buffer.starts_with(ENCODER_PREFIX) {
+                        let i = ENCODER_PREFIX.len();
+                        let substr = &uart_in_buffer[i..uart_in_buffer.len()-1];
+                        let enc_idx: i32 = substr.parse().unwrap();
+                        let new_enc_index = enc_idx + 5;
+                        uart_in_buffer.truncate(i);
+                        let mut int_string: ArrayString::<[u8; 4]> = ArrayString::new();
+                        write!(int_string, "{}\n", new_enc_index).ok();
+                        uart_in_buffer.push_str(int_string.as_str());
                     }
 
+                    write_string_to_queue(ext_p, uart_in_buffer);
                     uart_in_buffer.clear();
                     cx.spawn.send().ok();
                 }
-                // tx2.lock(|tx2| nb::block!(tx2.write(b)).unwrap());
             }
             Err(_e) => {
-                // led.set_high().unwrap();
-                // led.toggle().unwrap();
                 writeln!(uart_in_buffer, "{:?}", _e).unwrap();
                 write_string_to_queue(ext_p, uart_in_buffer);
                 uart_in_buffer.clear();
                 cx.spawn.send().ok();
-                // tx2.lock(|tx2| writeln!(tx2, "Serial Error: {:?}", _e).unwrap());
             }
         }
 
     }
 
-
-    // #[task(binds = USART2, resources = [rx2, led], priority = 1)]
-    // fn usart2_in(cx: usart2_in::Context) {
-
-    //     let usart2_in::Resources {
-    //         rx2,
-    //         led
-    //     } = cx.resources;
-
-    //     led.toggle().unwrap();
-
-    //     match rx2.read() {
-    //         Ok(b) => {
-    //             // tx2.write(b).unwrap();
-    //         }
-    //         Err(_e) => {
-    //             // writeln!(tx2, "Serial Error: {:?}", _e).unwrap();
-    //         }
-    //     }
-
-    // }
-
     #[task(binds = TIM1_UP, resources = [timer, time_ms], priority = 5)]
     fn tim1_up(cx: tim1_up::Context) {
         *cx.resources.time_ms += 1;
-
-        // Clear the interrupt flag.
         cx.resources.timer.clear_update_interrupt_flag();
     }
 
@@ -395,8 +363,6 @@ const APP: () = {
             c,
             ext_c
         } = cx.resources;
-
-        // writeln!(tx2, "<= New Dataset =>").unwrap();
 
         while c.ready() {
             if let Some(byte) = c.dequeue() {
@@ -443,7 +409,7 @@ const APP: () = {
         if ready {
             // header
             let mut uart_string: ArrayString::<[u8; 20]> = ArrayString::new();
-            writeln!(uart_string, "START Enc {}", ACTIVE_ENCODER).unwrap();
+            writeln!(uart_string, "{}{}", ENCODER_PREFIX, ACTIVE_ENCODER).unwrap();
             write_string_to_queue(p, &uart_string.as_str());
             for x in encoder_vector.iter() {
                 uart_string.clear();
@@ -452,7 +418,7 @@ const APP: () = {
                 writeln!(uart_string, "{}:{}", t, v).unwrap();
                 write_string_to_queue(p, &uart_string.as_str());
             }
-            write_string_to_queue(p, "END\n");
+            write_string_to_queue(p, ENCODER_SUFFIX);
 
             encoder_vector.clear();
             *ACTIVE_ENCODER = EncoderIndex::EncoderNone;
