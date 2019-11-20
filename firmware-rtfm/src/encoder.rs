@@ -1,8 +1,4 @@
 
-// extern crate heapless;
-// use heapless::Vec;
-// use heapless::consts::*;
-
 extern crate embedded_hal;
 use embedded_hal::digital::v2::{InputPin, OutputPin};
 use core::convert::Infallible;
@@ -25,7 +21,6 @@ pub trait EncoderInterface {
 }
 
 pub struct Encoder<CHA: InputPin, CHB: InputPin, LED: OutputPin> {
-    // data: Vec<EncoderPair, U300>,
     ready: bool,
     done: bool,
     start: u32,
@@ -48,8 +43,6 @@ impl<CHA, CHB, LED> EncoderInterface for Encoder<CHA, CHB, LED>
     CHB: InputPin<Error = Infallible>,
     LED: OutputPin<Error = Infallible>
     {
-
-
 
     fn update(&mut self, channel: &Channel, timestamp: u32) -> Option<EncoderPair> {
         let a: bool = self.channel_a.is_high().unwrap();
@@ -101,7 +94,6 @@ impl<CHA: InputPin<Error = Infallible>, CHB: InputPin<Error = Infallible>, LED: 
 
     pub fn new(ch_a: CHA, ch_b: CHB, led: LED) -> Self {
         Self {
-            // data: Vec::new(),
             ready: false,
             done: false,
             start: 0,
@@ -114,7 +106,6 @@ impl<CHA: InputPin<Error = Infallible>, CHB: InputPin<Error = Infallible>, LED: 
     }
 
     pub fn reset(&mut self) {
-        // self.data.clear();
         self.ready = false;
         self.start = 0;
         self.done = false;
@@ -124,12 +115,6 @@ impl<CHA: InputPin<Error = Infallible>, CHB: InputPin<Error = Infallible>, LED: 
 
 
     fn new_value(&mut self, timestamp: u32, position: i16) -> Option<EncoderPair> {
-
-        // TODO: return optional
-        // if self.ready {
-        //     return
-        // }
-
 
         if self.start == 0 {
             self.start = timestamp;
@@ -164,12 +149,4 @@ impl<CHA: InputPin<Error = Infallible>, CHB: InputPin<Error = Infallible>, LED: 
         }
     }
 
-
-    pub fn set_ready(&mut self, ready: bool) { self.ready = ready }
-
-    // pub fn get(&self) -> &Vec<EncoderPair, U300> { &self.data }
-
-    pub fn position(&mut self) -> i16 {
-        self.position
-    }
 }
