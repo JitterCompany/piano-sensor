@@ -77,16 +77,21 @@ type Enc5 = Encoder<
     gpiob::PB15<Input<PullUp>>,
     gpiob::PB14<Output<PushPull>>>;
 
+
+const BAUDRATE: u32 = 57_600;
+
 #[rtfm::app(device = stm32f1xx_hal::pac, peripherals = true)]
 const APP: () = {
 
     struct Resources {
         time_ms: u32,
+        // led: PB14<Output<PushPull>>,
         led: PB12<Output<PushPull>>,
         timer: CountDownTimer<pac::TIM1>,
         rx2: serial::Rx<pac::USART2>,
         tx2: serial::Tx<pac::USART2>,
         tx3: serial::Tx<pac::USART3>,
+        rx3: serial::Rx<pac::USART3>,
         exti: EXTI,
         encoder1: Enc1,
         encoder2: Enc2,
@@ -96,13 +101,22 @@ const APP: () = {
         encoder_vector: Vec<EncoderPair, U300>,
         p: Producer<'static, u8, U4096>,
         c: Consumer<'static, u8, U4096>,
+        ext_p: Producer<'static, u8, U4096>,
+        ext_c: Consumer<'static, u8, U4096>,
+        uart_in_buffer: ArrayString::<[u8; 50]>,
+
     }
 
     #[init]
     fn init(cx: init::Context) -> init::LateResources {
 
+        static mut EXT_Q: Queue<u8, U4096> = Queue(i::Queue::new());
         static mut Q: Queue<u8, U4096> = Queue(i::Queue::new());
+
+        let (ext_p, ext_c) = EXT_Q.split();
         let (p, c) = Q.split();
+
+
 
         // Cortex-M peripherals
         let _core: cortex_m::Peripherals = cx.core;
@@ -218,16 +232,16 @@ const APP: () = {
         let uart2_tx = gpioa.pa2.into_alternate_push_pull(&mut gpioa.crl);
         let uart2_rx = gpioa.pa3;
 
-        let mut serial2 = Serial::usart2(
+        let serial2 = Serial::usart2(
             _device.USART2,
             (uart2_tx, uart2_rx),
             &mut afio.mapr,
-            Config::default().baudrate(2000000.bps()),
+            Config::default().baudrate(BAUDRATE.bps()),
             clocks,
             &mut rcc.apb1,
         );
 
-        serial2.listen(serial::Event::Rxne);
+        // serial2.listen(serial::Event::Rxne);
 
         let (mut tx2, rx2) = serial2.split();
 
@@ -238,16 +252,19 @@ const APP: () = {
         let uart3_tx = gpiob.pb10.into_alternate_push_pull(&mut gpiob.crh);
         let uart3_rx = gpiob.pb11;
 
-        let serial3 = Serial::usart3(
+        let mut serial3 = Serial::usart3(
             _device.USART3,
             (uart3_tx, uart3_rx),
             &mut afio.mapr,
-            Config::default().baudrate(2000000.bps()),
+            Config::default().baudrate(BAUDRATE.bps()),
             clocks,
             &mut rcc.apb1,
         );
 
-        let (tx3, _) = serial3.split();
+        serial3.listen(serial::Event::Rxne);
+
+
+        let (tx3, rx3) = serial3.split();
 
         // Configure the syst timer to trigger an update every second and enables interrupt
         let mut timer = Timer::tim1(_device.TIM1, &clocks, &mut rcc.apb2)
@@ -258,12 +275,13 @@ const APP: () = {
         // Return the initialised resources.
         init::LateResources {
             time_ms: 0,
-            led: led,
-            timer: timer,
-            rx2: rx2,
-            tx2: tx2,
-            tx3: tx3,
-            exti: exti,
+            led,
+            timer,
+            rx2,
+            tx2,
+            tx3,
+            rx3,
+            exti,
             encoder1,
             encoder2,
             encoder3,
@@ -271,7 +289,10 @@ const APP: () = {
             encoder5,
             encoder_vector: Vec::new(),
             c,
-            p
+            p,
+            ext_p,
+            ext_c,
+            uart_in_buffer: ArrayString::new(),
             // uart_string: ArrayString::new(),
             // uart_string2: ArrayString::new(),
         }
@@ -282,23 +303,81 @@ const APP: () = {
     //     loop {}
     // }
 
-    #[task(binds = USART2, resources = [rx2], priority = 1)]
-    fn usart2(_cx: usart2::Context) {
+    #[task(binds = USART3, resources = [rx3, led, ext_p, uart_in_buffer], priority = 5, spawn=[send])]
+    fn usart_in(cx: usart_in::Context) {
 
-        // let usart2::Resources {
-        //     rx2
-        // } = cx.resources;
+        let usart_in::Resources {
+            rx3,
+            // mut tx2,
+            led,
+            ext_p,
+            uart_in_buffer
+        } = cx.resources;
 
-        // match rx2.read() {
-        //     Ok(b) => {
-        //         // tx2.write(b).unwrap();
-        //     }
-        //     Err(_e) => {
-        //         // writeln!(tx2, "Serial Error: {:?}", _e).unwrap();
-        //     }
-        // }
+        led.toggle().unwrap();
+
+        match rx3.read() {
+            Ok(b) => {
+
+                match uart_in_buffer.try_push(b as char) {
+                    Ok(_n)  => {},
+                    Err(_buffer_error) => {
+                        uart_in_buffer.clear();
+                        return;
+                    }
+                }
+
+                if b == b'\n' {
+                // //     // led.toggle().unwrap();
+                // //     // match stringthing.as_ref() {
+                // //     //     "START" =>
+                // //     // }
+                    // write_string_to_queue(ext_p, uart_in_buffer);
+                    // write_string_to_queue(ext_p, "a\n");
+
+                    for byte in uart_in_buffer.bytes() {
+                        ext_p.enqueue(byte).unwrap();
+                    }
+
+                    uart_in_buffer.clear();
+                    cx.spawn.send().ok();
+                }
+                // tx2.lock(|tx2| nb::block!(tx2.write(b)).unwrap());
+            }
+            Err(_e) => {
+                // led.set_high().unwrap();
+                // led.toggle().unwrap();
+                writeln!(uart_in_buffer, "{:?}", _e).unwrap();
+                write_string_to_queue(ext_p, uart_in_buffer);
+                uart_in_buffer.clear();
+                cx.spawn.send().ok();
+                // tx2.lock(|tx2| writeln!(tx2, "Serial Error: {:?}", _e).unwrap());
+            }
+        }
 
     }
+
+
+    // #[task(binds = USART2, resources = [rx2, led], priority = 1)]
+    // fn usart2_in(cx: usart2_in::Context) {
+
+    //     let usart2_in::Resources {
+    //         rx2,
+    //         led
+    //     } = cx.resources;
+
+    //     led.toggle().unwrap();
+
+    //     match rx2.read() {
+    //         Ok(b) => {
+    //             // tx2.write(b).unwrap();
+    //         }
+    //         Err(_e) => {
+    //             // writeln!(tx2, "Serial Error: {:?}", _e).unwrap();
+    //         }
+    //     }
+
+    // }
 
     #[task(binds = TIM1_UP, resources = [timer, time_ms], priority = 5)]
     fn tim1_up(cx: tim1_up::Context) {
@@ -308,18 +387,25 @@ const APP: () = {
         cx.resources.timer.clear_update_interrupt_flag();
     }
 
-    #[task(resources = [tx2, c], priority = 3)]
+    #[task(resources = [tx2, c, ext_c], priority = 3)]
     fn send(cx: send::Context) {
 
         let send::Resources {
             tx2,
-            c
+            c,
+            ext_c
         } = cx.resources;
 
-        writeln!(tx2, "<===== New Dataset =====>").unwrap();
+        // writeln!(tx2, "<= New Dataset =>").unwrap();
 
         while c.ready() {
             if let Some(byte) = c.dequeue() {
+                nb::block!(tx2.write(byte)).unwrap()
+            }
+        }
+
+        while ext_c.ready() {
+           if let Some(byte) = ext_c.dequeue() {
                 nb::block!(tx2.write(byte)).unwrap()
             }
         }
@@ -357,7 +443,7 @@ const APP: () = {
         if ready {
             // header
             let mut uart_string: ArrayString::<[u8; 20]> = ArrayString::new();
-            writeln!(uart_string, "START Encoder {}", ACTIVE_ENCODER).unwrap();
+            writeln!(uart_string, "START Enc {}", ACTIVE_ENCODER).unwrap();
             write_string_to_queue(p, &uart_string.as_str());
             for x in encoder_vector.iter() {
                 uart_string.clear();
@@ -366,7 +452,7 @@ const APP: () = {
                 writeln!(uart_string, "{}:{}", t, v).unwrap();
                 write_string_to_queue(p, &uart_string.as_str());
             }
-            write_string_to_queue(p, "END");
+            write_string_to_queue(p, "END\n");
 
             encoder_vector.clear();
             *ACTIVE_ENCODER = EncoderIndex::EncoderNone;
