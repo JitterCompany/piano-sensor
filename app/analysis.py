@@ -9,7 +9,7 @@ from settings import DOWNWEIGHTS_g
 TICKS_PER_MM = 75/25.4 * 4
 
 record_threshold_min_mm = 1
-complete_threshold_mm = 15
+complete_threshold_mm = 12
 
 class KeyPress:
 

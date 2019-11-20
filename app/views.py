@@ -11,6 +11,8 @@ from analysis import KeyPress
 
 import numpy as np
 
+from settings import LOG_DIR
+
 plt.rcParams['axes.grid'] = True
 
 class FilePicker(QtWidgets.QWidget):
@@ -20,7 +22,7 @@ class FilePicker(QtWidgets.QWidget):
 
         self.layout = QtWidgets.QHBoxLayout(self)
 
-        self.dir = QtWidgets.QLineEdit()
+        self.dir = QtWidgets.QLineEdit(LOG_DIR)
         self.btn = QtWidgets.QPushButton('BROWSE')
 
         self.btn.clicked.connect(
@@ -196,6 +198,7 @@ class TextOutputView(QtWidgets.QWidget):
         self.inputLayout.addWidget(self.input)
 
         self.submitBtn = QtWidgets.QPushButton("Enter")
+        self.submitBtn.clicked.connect(self.addComment)
         self.inputLayout.addWidget(self.submitBtn)
 
         self.layout.addWidget(self.input)
@@ -208,6 +211,9 @@ class TextOutputView(QtWidgets.QWidget):
     def addText(self, text: str):
         self.output.append(text)
 
+    @QtCore.Slot()
+    def addComment(self):
+        self.addText(self.input.text())
 
 class MainView(QtWidgets.QWidget):
 
