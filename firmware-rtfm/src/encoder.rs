@@ -152,7 +152,7 @@ impl<CHA: InputPin<Error = Infallible>, CHB: InputPin<Error = Infallible>, LED: 
             }
         }
 
-        if abs_pos < 60 {
+        if abs_pos < 10 {
             self.reset();
             return None
         }

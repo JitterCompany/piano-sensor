@@ -31,6 +31,17 @@ use heapless::{
 
 use arrayvec::ArrayString;
 
+// type EncoderIndex = u8;
+#[derive(PartialEq)]
+pub enum EncoderIndex {
+    EncoderNone = 0,
+    Encoder1 = 1,
+    Encoder2,
+    Encoder3,
+    Encoder4,
+    Encoder5,
+}
+
 // type Enc1 = impl EncoderInterface;
 type Enc1 = Encoder<
     gpioa::PA5<Input<PullUp>>,
@@ -309,17 +320,30 @@ const APP: () = {
 
 
     #[task(priority = 2, resources=[encoder_vector, p], spawn = [send], capacity = 10)]
-    fn enc_buffer(cx: enc_buffer::Context, data_point: Option<EncoderPair>, ready: bool) {
+    fn enc_buffer(cx: enc_buffer::Context, enc_index: EncoderIndex, data_point: Option<EncoderPair>, ready: bool) {
+        static mut ACTIVE_ENCODER: EncoderIndex = EncoderIndex::EncoderNone;
+
+        if enc_index == EncoderIndex::EncoderNone {
+            return;
+        }
 
         let enc_buffer::Resources {
             encoder_vector,
             p,
         } = cx.resources;
 
+        if *ACTIVE_ENCODER == EncoderIndex::EncoderNone {
+            *ACTIVE_ENCODER = enc_index;
+        } else if *ACTIVE_ENCODER != enc_index {
+            // busy with other encoder: drop data
+            return;
+        }
+
         if let Some(data_point) = data_point {
             encoder_vector.push(data_point).ok();
         } else {
             encoder_vector.clear();
+            *ACTIVE_ENCODER = EncoderIndex::EncoderNone;
         }
 
         if ready {
@@ -333,6 +357,7 @@ const APP: () = {
                 }
             }
             encoder_vector.clear();
+            *ACTIVE_ENCODER = EncoderIndex::EncoderNone;
             cx.spawn.send().ok();
         }
     }
@@ -367,7 +392,7 @@ const APP: () = {
         if let Some(res) = encoder_isr((encoder1, encoder2,encoder3,
             encoder4,
             encoder5,), exti, current_time, channel) {
-            cx.spawn.enc_buffer(res.0, res.1).ok();
+            cx.spawn.enc_buffer(res.0, res.1, res.2).ok();
         }
     }
 
@@ -401,7 +426,7 @@ const APP: () = {
         if let Some(res) = encoder_isr((encoder1, encoder2, encoder3,
             encoder4,
             encoder5,), exti, current_time, channel) {
-            cx.spawn.enc_buffer(res.0, res.1).ok();
+            cx.spawn.enc_buffer(res.0, res.1, res.2).ok();
         }
     }
 
@@ -415,7 +440,7 @@ const APP: () = {
 };
 
 fn encoder_isr(encoder: (&mut impl EncoderInterface, &mut impl EncoderInterface, &mut impl EncoderInterface, &mut impl EncoderInterface, &mut impl EncoderInterface),
-    exti: &EXTI, t: u32, channel: Channel) -> Option<(Option<EncoderPair>, bool)> {
+    exti: &EXTI, t: u32, channel: Channel) -> Option<(EncoderIndex, Option<EncoderPair>, bool)> {
 
     let pr = exti.pr.read();
     if pr.pr5().bit_is_set() || pr.pr13().bit_is_set() {
@@ -426,7 +451,7 @@ fn encoder_isr(encoder: (&mut impl EncoderInterface, &mut impl EncoderInterface,
         });
 
         let datapoint = encoder.0.update(&channel, t);
-        let tuple: (Option<EncoderPair>, bool) = (datapoint, encoder.0.ready());
+        let tuple = (EncoderIndex::Encoder1, datapoint, encoder.0.ready());
         return Some(tuple);
     }
     if pr.pr6().bit_is_set() || pr.pr12().bit_is_set() {
@@ -436,7 +461,7 @@ fn encoder_isr(encoder: (&mut impl EncoderInterface, &mut impl EncoderInterface,
             w.pr12().set_bit()
         });
         let datapoint = encoder.1.update(&channel, t);
-        let tuple: (Option<EncoderPair>, bool) = (datapoint, encoder.1.ready());
+        let tuple = (EncoderIndex::Encoder2, datapoint, encoder.1.ready());
         return Some(tuple);
     }
     if pr.pr7().bit_is_set() || pr.pr11().bit_is_set() {
@@ -446,7 +471,7 @@ fn encoder_isr(encoder: (&mut impl EncoderInterface, &mut impl EncoderInterface,
             w.pr11().set_bit()
         });
         let datapoint = encoder.2.update(&channel, t);
-        let tuple: (Option<EncoderPair>, bool) = (datapoint, encoder.2.ready());
+        let tuple = (EncoderIndex::Encoder3, datapoint, encoder.2.ready());
         return Some(tuple);
     }
     if pr.pr9().bit_is_set() || pr.pr10().bit_is_set() {
@@ -456,7 +481,7 @@ fn encoder_isr(encoder: (&mut impl EncoderInterface, &mut impl EncoderInterface,
             w.pr10().set_bit()
         });
         let datapoint = encoder.3.update(&channel, t);
-        let tuple: (Option<EncoderPair>, bool) = (datapoint, encoder.3.ready());
+        let tuple = (EncoderIndex::Encoder4, datapoint, encoder.3.ready());
         return Some(tuple);
     }
     if pr.pr8().bit_is_set() || pr.pr15().bit_is_set() {
@@ -466,7 +491,7 @@ fn encoder_isr(encoder: (&mut impl EncoderInterface, &mut impl EncoderInterface,
             w.pr15().set_bit()
         });
         let datapoint = encoder.4.update(&channel, t);
-        let tuple: (Option<EncoderPair>, bool) = (datapoint, encoder.4.ready());
+        let tuple = (EncoderIndex::Encoder5, datapoint, encoder.4.ready());
         return Some(tuple);
     }
     None
