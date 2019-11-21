@@ -24,7 +24,7 @@ default-features = false
 [dependencies.stm32f1xx-hal]
 features = ["stm32f103", "rt"]
 # version = "0.5.0"
-path = "../../../rust/stm32f1xx-hal"
+path = "./stm32f1xx-hal"
 
 [dependencies.embedded-hal]
 version = "0.2.3"
