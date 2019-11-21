@@ -79,12 +79,6 @@ static TIMER_UP: Mutex<RefCell<Option<timer::Timer<stm32f1xx_hal::pac::TIM1>>>> 
 static TIME_MS: CSCounter<u32> = CSCounter(UnsafeCell::new(0));
 
 
-
-// static ENCODER: Mutex<RefCell<Option<Encoder<
-//         gpioa::PA5<Input<PullUp>>,
-//         gpioa::PA10<Input<PullUp>>
-//         >>>> = Mutex::new(RefCell::new(None));
-
 static ENCODER1: Mutex<RefCell<Option<Encoder<
         gpioa::PA5<Input<PullUp>>,
         gpioc::PC13<Input<PullUp>>,
