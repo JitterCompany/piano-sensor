@@ -17,6 +17,7 @@ impl EncoderPair {
 pub trait EncoderInterface {
     fn update(&mut self, channel: &Channel, timestamp: u32) -> Option<EncoderPair>;
     fn ready(&mut self) -> bool;
+    fn toggle_led(&mut self);
 }
 
 pub struct Encoder<CHA: InputPin, CHB: InputPin, LED: OutputPin> {
@@ -83,6 +84,12 @@ impl<CHA, CHB, LED> EncoderInterface for Encoder<CHA, CHB, LED>
             // self.reset();
         }
         is_ready
+    }
+
+    fn toggle_led(&mut self) {
+        self.led.set_high().unwrap();
+        for _ in 0..40000 {}
+        self.led.set_low().unwrap();
     }
 
 

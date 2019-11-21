@@ -88,7 +88,6 @@ const APP: () = {
 
     struct Resources {
         time_ms: u32,
-        // led: PB14<Output<PushPull>>,
         led: PB12<Output<PushPull>>,
         timer: CountDownTimer<pac::TIM1>,
         rx2: serial::Rx<pac::USART2>,
@@ -110,7 +109,7 @@ const APP: () = {
 
     }
 
-    #[init]
+    #[init(spawn = [startup])]
     fn init(cx: init::Context) -> init::LateResources {
 
         static mut EXT_Q: Queue<u8, U4096> = Queue(i::Queue::new());
@@ -274,6 +273,7 @@ const APP: () = {
             .start_count_down(10.khz());
         timer.listen(Event::Update);
 
+        cx.spawn.startup().ok();
 
         // Return the initialised resources.
         init::LateResources {
@@ -297,6 +297,34 @@ const APP: () = {
             ext_c,
             uart_in_buffer: ArrayString::new(),
         }
+    }
+
+    #[task(resources=[encoder1, encoder2, encoder3, encoder4, encoder5, led])]
+    fn startup(cx: startup::Context) {
+        let startup::Resources {
+            mut encoder1,
+            mut encoder2,
+            mut encoder3,
+            mut encoder4,
+            mut encoder5,
+            led,
+            // mut time_ms,
+        } = cx.resources;
+
+        for _ in 0..3 {
+            led.toggle().unwrap();
+            encoder1.lock(|encoder| encoder.toggle_led());
+            led.toggle().unwrap();
+            encoder2.lock(|encoder| encoder.toggle_led());
+            led.toggle().unwrap();
+            encoder3.lock(|encoder| encoder.toggle_led());
+            led.toggle().unwrap();
+            encoder4.lock(|encoder| encoder.toggle_led());
+            led.toggle().unwrap();
+            encoder5.lock(|encoder| encoder.toggle_led());
+            led.toggle().unwrap();
+        }
+
     }
 
     #[task(priority = 3, resources=[ext_p, uart_in_buffer], spawn = [send], capacity = 100)]
@@ -502,6 +530,7 @@ const APP: () = {
     extern "C" {
         fn USART1();
         fn SPI1();
+        fn SPI2();
     }
 
 
