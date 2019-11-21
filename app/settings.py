@@ -1,3 +1,6 @@
+
+# settings per key 1 - 10
+INERTIA_g = [40, 40, 40, 40, 40, 40, 40, 40, 40, 40]
 DOWNWEIGHTS_g = [40, 40, 40, 40, 40, 40, 40, 40, 40, 40]
 
 # The default location the log files will be stored in

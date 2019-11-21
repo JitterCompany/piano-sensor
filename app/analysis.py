@@ -5,7 +5,7 @@ import pandas as pd
 
 from PySide2 import QtCore
 
-from settings import DOWNWEIGHTS_g
+from settings import DOWNWEIGHTS_g, INERTIA_g
 
 TICKS_PER_MM = 75/25.4 * 4
 
