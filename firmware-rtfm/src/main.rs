@@ -78,7 +78,7 @@ type Enc5 = Encoder<
     gpiob::PB14<Output<PushPull>>>;
 
 
-const BAUDRATE: u32 = 57_600;
+const BAUDRATE: u32 = 57600;
 
 const ENCODER_PREFIX: &str = "KEY ";
 const ENCODER_SUFFIX: &str = "END\n";
@@ -299,19 +299,15 @@ const APP: () = {
         }
     }
 
-    #[task(binds = USART3, resources = [rx3, led, ext_p, uart_in_buffer], priority = 5, spawn=[send])]
-    fn usart_in(cx: usart_in::Context) {
+    #[task(priority = 3, resources=[ext_p, uart_in_buffer], spawn = [send], capacity = 100)]
+    fn uart_buffer(cx: uart_buffer::Context, byte: Result<u8, nb::Error<serial::Error>>) {
 
-        let usart_in::Resources {
-            rx3,
-            led,
+        let uart_buffer::Resources {
             ext_p,
             uart_in_buffer
         } = cx.resources;
 
-        led.toggle().unwrap();
-
-        match rx3.read() {
+        match byte {
             Ok(b) => {
 
                 match uart_in_buffer.try_push(b as char) {
@@ -347,15 +343,26 @@ const APP: () = {
             }
         }
 
+
     }
 
-    #[task(binds = TIM1_UP, resources = [timer, time_ms], priority = 5)]
+    #[task(binds = USART3, resources = [rx3], priority = 5, spawn=[uart_buffer])]
+    fn usart_in(cx: usart_in::Context) {
+
+        let usart_in::Resources {
+            rx3,
+        } = cx.resources;
+
+        cx.spawn.uart_buffer(rx3.read()).ok();
+    }
+
+    #[task(binds = TIM1_UP, resources = [timer, time_ms], priority = 7)]
     fn tim1_up(cx: tim1_up::Context) {
         *cx.resources.time_ms += 1;
         cx.resources.timer.clear_update_interrupt_flag();
     }
 
-    #[task(resources = [tx2, c, ext_c], priority = 3)]
+    #[task(resources = [tx2, c, ext_c], priority = 2)]
     fn send(cx: send::Context) {
 
         let send::Resources {
@@ -379,7 +386,7 @@ const APP: () = {
     }
 
 
-    #[task(priority = 2, resources=[encoder_vector, p], spawn = [send], capacity = 10)]
+    #[task(priority = 3, resources=[encoder_vector, p], spawn = [send], capacity = 10)]
     fn enc_buffer(cx: enc_buffer::Context, enc_index: EncoderIndex, data_point: Option<EncoderPair>, ready: bool) {
         static mut ACTIVE_ENCODER: EncoderIndex = EncoderIndex::EncoderNone;
 
@@ -431,7 +438,7 @@ const APP: () = {
     /**
      *Ch A interrupt
     */
-    #[task(binds = EXTI9_5, resources = [encoder1, encoder2, encoder3, encoder4, encoder5, time_ms, exti], priority = 4, spawn = [enc_buffer])]
+    #[task(binds = EXTI9_5, resources = [encoder1, encoder2, encoder3, encoder4, encoder5, time_ms, exti], priority = 6, spawn = [enc_buffer])]
     fn encoder_a(cx: encoder_a::Context) {
 
         let encoder_a::Resources {
@@ -462,7 +469,7 @@ const APP: () = {
     /**
      *Ch B interrupt
     */
-    #[task(binds = EXTI15_10, resources = [encoder1, encoder2, encoder3, encoder4, encoder5, time_ms, exti], priority = 4, spawn = [enc_buffer])]
+    #[task(binds = EXTI15_10, resources = [encoder1, encoder2, encoder3, encoder4, encoder5, time_ms, exti], priority = 6, spawn = [enc_buffer])]
     fn encoder_b(cx: encoder_b::Context) {
 
         let encoder_b::Resources {
