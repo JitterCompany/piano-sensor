@@ -20,6 +20,15 @@ $ rustup target add thumbv6m-none-eabi thumbv7m-none-eabi thumbv7em-none-eabi th
 
 ## Building
 
+# Only First Time
+
+To retrieve stm32f1xx-hal submodule
+
+``` console
+git submodule init
+git submodule update
+```
+
 Build the application
 
 ``` console
