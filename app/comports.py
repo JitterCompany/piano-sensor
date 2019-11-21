@@ -14,9 +14,6 @@ BAUDRATE = 57600
 
 class SerialConnection(QtCore.QObject):
 
-
-    # newCOMPorts = QtCore.Signal(list)
-
     textStream = QtCore.Signal(str)
 
     def __init__(self):

@@ -28,6 +28,7 @@ class PianoApp(QtWidgets.QApplication):
 
         self.window.show()
         signal.signal(signal.SIGINT, self.window.quit)
+        self.window.closeSignal.connect(self.quit)
 
         self.toolbar = QtWidgets.QToolBar()
         self.window.addToolBar(self.toolbar)
@@ -46,11 +47,17 @@ class PianoApp(QtWidgets.QApplication):
         self.parser.newDataSet.connect(lambda i, t, p: self.mainView.resultsView.new_results(KeyPress(i, t,p)))
         self.parser.newDataSet.connect(lambda i, t, p: self.mainView.textOutputView.new_results(KeyPress(i, t,p)))
 
+    def quit(self):
+        self.mainView.textOutputView.quit()
+
 
 class MainWindow(QtWidgets.QMainWindow):
     """
     Class docstring
     """
+
+    closeSignal = QtCore.Signal()
+
 
     def __init__(self):
         super(MainWindow, self).__init__()
@@ -82,7 +89,7 @@ class MainWindow(QtWidgets.QMainWindow):
     def closeEvent(self, event):
         """Handle window close event"""
         if event:
-            # self.terminal.close()
+            self.closeSignal.emit()
             event.accept()
             if not self._running:
                 return

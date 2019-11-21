@@ -11,11 +11,14 @@ from analysis import KeyPress
 
 import numpy as np
 
-from settings import LOG_DIR
+from settings import LOG_DIR, FILE_PREFIX
+import logger
 
 plt.rcParams['axes.grid'] = True
 
 class FilePicker(QtWidgets.QWidget):
+
+    updateDir = QtCore.Signal(str)
 
     def __init__(self):
         super(FilePicker, self).__init__()
@@ -23,16 +26,26 @@ class FilePicker(QtWidgets.QWidget):
         self.layout = QtWidgets.QHBoxLayout(self)
 
         self.dir = QtWidgets.QLineEdit(LOG_DIR)
-        self.btn = QtWidgets.QPushButton('BROWSE')
+        self.btn = QtWidgets.QPushButton('Browse')
+        self.newBtn = QtWidgets.QPushButton('New Session')
+        self.newBtn.clicked.connect(lambda x: self._pick(self.dir.text()))
 
         self.btn.clicked.connect(
-            lambda x: self.dir.setText(
+            lambda x: self._pick(
                 QtWidgets.QFileDialog.getExistingDirectory()
             )
         )
+        self.updateDir.emit(self.dir.text())
 
         self.layout.addWidget(self.dir)
         self.layout.addWidget(self.btn)
+        self.layout.addWidget(self.newBtn)
+
+    def _pick(self, directory: str):
+        self.dir.setText(directory)
+        self.updateDir.emit(directory)
+
+
 
 class ResultView(QtWidgets.QWidget):
 
@@ -69,7 +82,7 @@ class ResultView(QtWidgets.QWidget):
 
 
         valueLayout = QtWidgets.QHBoxLayout()
-        valueLayout.addWidget(QtWidgets.QLabel('Encoder'))
+        valueLayout.addWidget(QtWidgets.QLabel('Key'))
         valueLayout.addWidget(self.encoder)
         self.layout.addLayout(valueLayout)
 
@@ -218,6 +231,18 @@ class TextOutputView(QtWidgets.QWidget):
         self.layout.addWidget(self.textView)
         self.layout.addWidget(inputbox)
 
+        self.logHandle = logger.start_new_session(LOG_DIR, FILE_PREFIX, csv=False)
+
+
+    def quit(self):
+        logger.close_session(self.logHandle)
+
+    def new_log_session(self, logdir: str):
+        if self.logHandle:
+            logger.close_session(self.logHandle)
+            self.logHandle = None
+
+        self.logHandle = logger.start_new_session(logdir, FILE_PREFIX, csv=False)
 
     @QtCore.Slot(KeyPress)
     def new_results(self, k: KeyPress):
@@ -226,6 +251,7 @@ class TextOutputView(QtWidgets.QWidget):
     @QtCore.Slot(str)
     def addText(self, text: str):
         self.textView.append(text)
+        logger.write_str(self.logHandle, text)
 
     @QtCore.Slot()
     def addComment(self):
@@ -259,6 +285,7 @@ class MainView(QtWidgets.QWidget):
 
         self.filepicker = FilePicker()
 
+
         empty =  QtWidgets.QWidget()
 
         empty.setSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Preferred)
@@ -279,6 +306,8 @@ class MainView(QtWidgets.QWidget):
 
         self.layout.addWidget(self.resultsView)
         self.layout.addWidget(self.textOutputView)
+
+        self.filepicker.updateDir.connect(self.textOutputView.new_log_session)
 
     @QtCore.Slot(list)
     def updateCOMPorts(self, portlist):
