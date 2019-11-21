@@ -12,6 +12,8 @@ from views import MainView
 from comports import SerialConnection, SerialParser
 from analysis import KeyPress
 
+import status
+
 FPS = 20
 
 
@@ -47,8 +49,14 @@ class PianoApp(QtWidgets.QApplication):
         self.parser.newDataSet.connect(lambda i, t, p: self.mainView.resultsView.new_results(KeyPress(i, t,p)))
         self.parser.newDataSet.connect(lambda i, t, p: self.mainView.textOutputView.new_results(KeyPress(i, t,p)))
 
+        status.set_status_logger(self.set_status_message)
+        status.set_status('Force Sensor Ready..')
+
     def quit(self):
         self.mainView.textOutputView.quit()
+
+    def set_status_message(self, msg: str):
+        self.window.statusBar().showMessage(msg)
 
 
 class MainWindow(QtWidgets.QMainWindow):
@@ -79,7 +87,9 @@ class MainWindow(QtWidgets.QMainWindow):
         self.setWindowIcon(QtGui.QIcon('assets/icon.jpeg'))
         self.setGeometry(50, 50, 1600, 900)
         # set_background_color(self, '#5a5d73')
-        set_background_color(self, 'gray')
+        # set_background_color(self, 'gray')
+
+        self.statusBar().showMessage('')
 
         self._center()
         self.raise_()

@@ -75,8 +75,8 @@ class ResultView(QtWidgets.QWidget):
         # self.plot.update_plot(range(5))
 
         # self.setStyleSheet("font-weight: bold; font-size: {}px".format(24))
-        self.forceResult = QtWidgets.QLabel('3.5 N')
-        self.accelResult = QtWidgets.QLabel('20 mm/s^2')
+        self.forceResult = QtWidgets.QLabel('- N')
+        self.accelResult = QtWidgets.QLabel('- mm/s^2')
         self.encoder = QtWidgets.QLabel('-')
         self.risetimeResult = QtWidgets.QLabel('- s')
 
@@ -165,18 +165,30 @@ class MatplotlibWidget(QtWidgets.QWidget):
         self.ax.clear()
 
     def show_speed(self, k: KeyPress):
+
+        if not k:
+            return
+
         self.clear()
         t, speed, speed_fitted = k.speed_data()
         self.plot(t, speed, speed_fitted, title='Speed vs time', xlabel='Time [ms]', ylabel='Speed [mm/s]')
 
 
     def show_accel(self, k: KeyPress):
+
+        if not k:
+            return
+
         self.clear()
         t, accel, accel_fitted = k.accel_data()
         self.plot(t, accel, accel_fitted, title='Acceleration vs time', xlabel='Time [ms]', ylabel='Speed [mm/s^2]', plot_z_average=True)
 
 
     def show_position(self, k: KeyPress):
+
+        if not k:
+            return
+
         self.clear()
 
         t = k.timestamps

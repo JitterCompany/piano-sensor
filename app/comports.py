@@ -8,6 +8,8 @@ from serial.tools import list_ports
 
 from serial.tools import hexlify_codec
 
+import status
+
 codecs.register(lambda c: hexlify_codec.getregentry() if c == 'hexlify' else None)
 
 BAUDRATE = 57600
@@ -54,7 +56,6 @@ class SerialConnection(QtCore.QObject):
         self.dropdown.clear()
         self.dropdown.addItem('--- Select COM Port ---')
         self.dropdown.addItems([p.device for p in self.availablePorts])
-        # self.newCOMPorts.emit([p.device for p in self.availablePorts])
 
     def change_port(self, port: serial.Serial):
 
@@ -63,6 +64,7 @@ class SerialConnection(QtCore.QObject):
             self._stop_reader()
         self.serial = serial.Serial(port.device, BAUDRATE, timeout=10)
         print('open port: ', self.serial, self.serial.port)
+        status.set_status('open port: {}'.format(self.serial.port))
         self._start_reader()
 
 

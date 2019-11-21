@@ -10,6 +10,8 @@ import csv
 import typing
 from pathlib import Path
 
+import status
+
 LogHandle = typing.NamedTuple('loghandle', [('file', typing.TextIO), ('writer', csv.writer)])
 
 def start_new_session(directory, file_prefix: str, csv: bool):
@@ -59,6 +61,7 @@ def start_new_session(directory, file_prefix: str, csv: bool):
         csvfile = open(str(fname), 'w', newline='')
         writer = csv.writer(csvfile, delimiter=',') if csv else None
         print('starting new logging session with file:', str(fname))
+        status.set_status('starting new logging session with file: {}'.format(str(fname)))
         return LogHandle(file=csvfile, writer=writer)
     except Exception as e:
         print('error opening file: \n', e)
@@ -107,4 +110,5 @@ def close_session(handle: LogHandle):
     """
     if handle and handle.file:
         print('closing logging session for file:', handle.file.name)
+        status.set_status('close logging session with file: {}'.format(handle.file.name))
         handle.file.close()
