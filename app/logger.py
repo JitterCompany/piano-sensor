@@ -76,7 +76,6 @@ def write_str(handle: LogHandle, line: str):
     line: str
     """
     if handle and handle.file and line is not None:
-        print('write to file:', line)
         handle.file.write(line)
 
 def write_csv(handle: LogHandle, data: typing.Iterable):
