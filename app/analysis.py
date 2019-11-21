@@ -1,3 +1,4 @@
+from datetime import datetime
 
 import numpy as np
 import pandas as pd
@@ -15,7 +16,7 @@ class KeyPress:
 
     def __init__(self, encoder: int, timestamps: list, positionData: list):
 
-        self.timestamp =
+        self.timestamp = datetime.now()
         self.encoder = encoder
 
         self.timestamps, i = np.unique(np.array(timestamps), return_index=True)
@@ -40,7 +41,7 @@ class KeyPress:
 
 
     def serialize(self):
-        string = "Key {}\n".format(self.encoder)
+        string = "Key {} @ {}\n".format(self.encoder, self.timestamp.strftime("%-d/%-m/%Y %-H:%M:%S"))
         string += "Time[ms] : Pos.[mm]\n"
         for t,p in zip(self.timestamps, self.positionData):
             string += "{t:<9.1F}:{p:< 5.1F}\n".format(t=t, p=p)
