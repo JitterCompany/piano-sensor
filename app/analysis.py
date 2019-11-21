@@ -15,10 +15,12 @@ class KeyPress:
 
     def __init__(self, encoder: int, timestamps: list, positionData: list):
 
+        self.timestamp =
         self.encoder = encoder
 
         self.timestamps, i = np.unique(np.array(timestamps), return_index=True)
-        self.positionData = np.array(positionData)[i] / TICKS_PER_MM
+        self.positionData = np.array(np.abs(positionData))[i] / TICKS_PER_MM
+
 
         # Find index for T_0 where key starts to go down significantly
         first_index = np.argmax(self.positionData > record_threshold_min_mm)
@@ -26,12 +28,25 @@ class KeyPress:
         # Index for T_1, key push (almost) complete
         last_index = np.argmax(self.positionData > complete_threshold_mm)
 
+        # print('first_index', first_index)
+        # print('last_index', last_index)
+
         if last_index:
             self.y = self.positionData[first_index:last_index]
             self.t = self.timestamps[first_index:last_index]
         else:
             self.y = None
             self.t = None
+
+
+    def serialize(self):
+        string = "Key {}\n".format(self.encoder)
+        string += "Time[ms] : Pos.[mm]\n"
+        for t,p in zip(self.timestamps, self.positionData):
+            string += "{t:<9.1F}:{p:< 5.1F}\n".format(t=t, p=p)
+
+        return string
+
 
     def dt(self):
         """ Time duration of measurement box """

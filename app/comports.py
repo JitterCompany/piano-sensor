@@ -10,7 +10,7 @@ from serial.tools import hexlify_codec
 
 codecs.register(lambda c: hexlify_codec.getregentry() if c == 'hexlify' else None)
 
-BAUDRATE = 115200
+BAUDRATE = 57600
 
 class SerialConnection(QtCore.QObject):
 
@@ -64,7 +64,7 @@ class SerialConnection(QtCore.QObject):
         if port and self.serial and port != self.serial.port:
             # reader thread needs to be shut down
             self._stop_reader()
-        self.serial = serial.Serial(port.device, BAUDRATE, timeout=1)
+        self.serial = serial.Serial(port.device, BAUDRATE, timeout=10)
         print('open port: ', self.serial, self.serial.port)
         self._start_reader()
 
@@ -97,9 +97,12 @@ class SerialConnection(QtCore.QObject):
                 if data:
                     # text = self.rx_decoder.decode(data)
                     try:
-                        text, length = self.rx_decoder(data[:-1]) # get rid of newline
-                        # text = ''.join([chr(c) for c in data])
-                        self.textStream.emit(text)
+                        if chr(data[-1]) == '\n':
+                            text, length = self.rx_decoder(data[:-1]) # get rid of newline
+                            # text = ''.join([chr(c) for c in data])
+                            self.textStream.emit(text)
+                        else:
+                            print('PAnIc:', data, data[-1], chr(data[-1]) == '\n')
                     except e:
                         print('parse error:', e)
                         pass
@@ -141,7 +144,8 @@ class SerialParser(QtCore.QObject):
 
         if self.started:
             res = line.split(":")
-            self.timestamps.append(int(res[0]) / 10)
-            self.positions.append(int(res[1]))
+            if len(res) == 2:
+                self.timestamps.append(int(res[0]) / 10)
+                self.positions.append(int(res[1]))
 
 

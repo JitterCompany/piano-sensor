@@ -61,7 +61,7 @@ class ResultView(QtWidgets.QWidget):
 
         # self.plot.update_plot(range(5))
 
-        self.setStyleSheet("font-weight: bold; font-size: {}px".format(24))
+        # self.setStyleSheet("font-weight: bold; font-size: {}px".format(24))
         self.forceResult = QtWidgets.QLabel('3.5 N')
         self.accelResult = QtWidgets.QLabel('20 mm/s^2')
         self.encoder = QtWidgets.QLabel('-')
@@ -186,34 +186,54 @@ class TextOutputView(QtWidgets.QWidget):
         super(TextOutputView, self).__init__()
 
 
-        self.output = QtWidgets.QTextEdit()
-        self.output.setReadOnly(True)
+        self.textView = QtWidgets.QTextEdit()
+        self.textView.setReadOnly(True)
+        self.textView.setFont(QtGui.QFont ("Courier", 15))
         self.input = QtWidgets.QLineEdit()
 
         self.layout = QtWidgets.QVBoxLayout(self)
 
-        self.layout.addWidget(self.output)
+        headerLayout = QtWidgets.QHBoxLayout()
+        headerLayout.addWidget(QtWidgets.QLabel("Raw Text Output"))
+        headerLayout.addStretch(1)
 
+        self.clearBtn = QtWidgets.QPushButton("Clear")
+        self.clearBtn.clicked.connect(self.clear)
+        headerLayout.addWidget(self.clearBtn)
+
+        inputbox = QtWidgets.QGroupBox(
+                    title='Add comments or markers to log output')
         self.inputLayout = QtWidgets.QHBoxLayout()
-        self.inputLayout.addWidget(self.input)
+        inputbox.setLayout(self.inputLayout)
 
         self.submitBtn = QtWidgets.QPushButton("Enter")
         self.submitBtn.clicked.connect(self.addComment)
+
+        self.inputLayout.addWidget(self.input)
         self.inputLayout.addWidget(self.submitBtn)
 
-        self.layout.addWidget(self.input)
 
-        self.layout.addWidget(QtWidgets.QLabel('Add comments or markers to log output'))
-        self.layout.addLayout(self.inputLayout)
+        # Add everything to main layout
+        self.layout.addLayout(headerLayout)
+        self.layout.addWidget(self.textView)
+        self.layout.addWidget(inputbox)
 
+
+    @QtCore.Slot(KeyPress)
+    def new_results(self, k: KeyPress):
+        self.addText(k.serialize())
 
     @QtCore.Slot(str)
     def addText(self, text: str):
-        self.output.append(text)
+        self.textView.append(text)
 
     @QtCore.Slot()
     def addComment(self):
         self.addText(self.input.text())
+
+    @QtCore.Slot()
+    def clear(self):
+        self.textView.clear()
 
 class MainView(QtWidgets.QWidget):
 

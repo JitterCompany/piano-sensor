@@ -38,12 +38,13 @@ class PianoApp(QtWidgets.QApplication):
 
         self.parser = SerialParser()
         self.SerialConnection.textStream.connect(self.parser.parse_line)
-        self.SerialConnection.textStream.connect(self.mainView.textOutputView.addText)
+        # self.SerialConnection.textStream.connect(self.mainView.textOutputView.addText)
 
         # self.parser.newDataSet.connect
         # self.parser.newDataSet.connect(estimateAcceleration)
 
         self.parser.newDataSet.connect(lambda i, t, p: self.mainView.resultsView.new_results(KeyPress(i, t,p)))
+        self.parser.newDataSet.connect(lambda i, t, p: self.mainView.textOutputView.new_results(KeyPress(i, t,p)))
 
 
 class MainWindow(QtWidgets.QMainWindow):
