@@ -29,17 +29,18 @@ $ cargo build
 
 ## Flashing
 
-using Cargo:
+Using Bobbin:
+
+```
+bobbin load --bin firmware-rtfm
+```
+
+## Debugging
+
+Command line GDB using Cargo:
 
 ```
 cargo run
 ```
 
 See .cargo/config for `runner` command.
-
-
-or using Bobbin:
-
-```
-bobbin load --bin firmware-rtfm
-```
