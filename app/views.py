@@ -258,7 +258,8 @@ class TextOutputView(QtWidgets.QWidget):
 
     @QtCore.Slot(KeyPress)
     def new_results(self, k: KeyPress):
-        self.addText(k.serialize())
+        # self.addText(k.serialize())
+        self.addText(k.summary())
 
     @QtCore.Slot(str)
     def addText(self, text: str):

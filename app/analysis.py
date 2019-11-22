@@ -40,6 +40,11 @@ class KeyPress:
             self.t = None
 
 
+    def summary(self):
+        string = "\nKey {} @ {}\n".format(self.encoder, self.timestamp.strftime("%-d/%-m/%Y %-H:%M:%S"))
+        string += '{0:.2f} mm/s^2\n'.format(self.average_fitted_acceleration())
+        return string;
+
     def serialize(self):
         string = "Key {} @ {}\n".format(self.encoder, self.timestamp.strftime("%-d/%-m/%Y %-H:%M:%S"))
         string += "Time[ms] : Pos.[mm]\n"
@@ -80,11 +85,21 @@ class KeyPress:
 
         rise_time = self.t[-1] - self.t[0]
 
-        # downweight in kg
-        m = DOWNWEIGHTS_g[self.encoder - 1] / 1000
-        force_N = (m  * (average_acceleration / 1000))
+        # downweight and inertia in kg
+        DW = DOWNWEIGHTS_g[self.encoder - 1] / 1000
+        I = INERTIA_g[self.encoder - 1] / 1000
+
+        # acceleration in m/s^2
+        a = average_acceleration / 1000
+
+        force_N = (DW + (I  * a))
 
         return rise_time, average_acceleration, force_N
+
+    def average_fitted_acceleration(self):
+        t, accel, accel_polyfit = self.accel_data()
+        average_acceleration = np.mean(accel_polyfit)
+        return average_acceleration
 
     def speed_data(self):
         """
