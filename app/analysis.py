@@ -43,6 +43,7 @@ class KeyPress:
     def summary(self):
         string = "\nKey {} @ {}\n".format(self.encoder, self.timestamp.strftime("%-d/%-m/%Y %-H:%M:%S"))
         string += '{0:.2f} mm/s^2\n'.format(self.average_fitted_acceleration())
+        string += '{0:.2f} ms\n'.format(self.metrics()[0])
         return string;
 
     def serialize(self):
