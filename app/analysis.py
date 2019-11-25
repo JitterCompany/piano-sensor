@@ -9,8 +9,8 @@ from settings import DOWNWEIGHTS_g, INERTIA_g
 
 TICKS_PER_MM = 75/25.4 * 4
 
-record_threshold_min_mm = 1
-complete_threshold_mm = 12
+record_threshold_min_mm = 3
+complete_threshold_mm = 13
 
 class KeyPress:
 

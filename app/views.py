@@ -210,6 +210,7 @@ class TextOutputView(QtWidgets.QWidget):
     def __init__(self, parent=None):
         super(TextOutputView, self).__init__()
 
+        self.count = 0
 
         self.textView = QtWidgets.QTextEdit()
         self.textView.setReadOnly(True)
@@ -250,6 +251,7 @@ class TextOutputView(QtWidgets.QWidget):
         logger.close_session(self.logHandle)
 
     def new_log_session(self, logdir: str):
+        self.count = 0
         if self.logHandle:
             logger.close_session(self.logHandle)
             self.logHandle = None
@@ -259,7 +261,8 @@ class TextOutputView(QtWidgets.QWidget):
     @QtCore.Slot(KeyPress)
     def new_results(self, k: KeyPress):
         # self.addText(k.serialize())
-        self.addText(k.summary())
+        self.count += 1
+        self.addText('# ' + str(self.count) + '\n' + k.summary())
 
     @QtCore.Slot(str)
     def addText(self, text: str):
@@ -268,7 +271,7 @@ class TextOutputView(QtWidgets.QWidget):
 
     @QtCore.Slot()
     def addComment(self):
-        self.addText(self.input.text())
+        self.addText('# ' + self.input.text())
 
     @QtCore.Slot()
     def clear(self):
