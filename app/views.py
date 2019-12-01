@@ -11,7 +11,7 @@ from analysis import KeyPress
 
 import numpy as np
 
-from settings import LOG_DIR, FILE_PREFIX
+from settings import LOG_DIR, SUMMARY_FILE_PREFIX, RAW_FILE_PREFIX
 import logger
 
 plt.rcParams['axes.grid'] = True
@@ -244,34 +244,50 @@ class TextOutputView(QtWidgets.QWidget):
         self.layout.addWidget(self.textView)
         self.layout.addWidget(inputbox)
 
-        self.logHandle = logger.start_new_session(LOG_DIR, FILE_PREFIX, csv=False)
+        self.summaryLogHandle = logger.start_new_session(LOG_DIR, SUMMARY_FILE_PREFIX, csv=False)
+        self.rawLogHandle = logger.start_new_session(LOG_DIR, RAW_FILE_PREFIX, csv=False)
 
 
     def quit(self):
-        logger.close_session(self.logHandle)
+        logger.close_session(self.summaryLogHandle)
+        logger.close_session(self.rawLogHandle)
 
     def new_log_session(self, logdir: str):
         self.count = 0
-        if self.logHandle:
-            logger.close_session(self.logHandle)
-            self.logHandle = None
 
-        self.logHandle = logger.start_new_session(logdir, FILE_PREFIX, csv=False)
+        if self.summaryLogHandle:
+            logger.close_session(self.summaryLogHandle)
+            self.summaryLogHandle = None
+        self.summaryLogHandle = logger.start_new_session(logdir, SUMMARY_FILE_PREFIX, csv=False)
+
+        if self.rawLogHandle:
+            logger.close_session(self.rawLogHandle)
+            self.rawLogHandle = None
+        self.rawLogHandle = logger.start_new_session(LOG_DIR, RAW_FILE_PREFIX, csv=False)
+
 
     @QtCore.Slot(KeyPress)
     def new_results(self, k: KeyPress):
         # self.addText(k.serialize())
         self.count += 1
-        self.addText('# ' + str(self.count) + '\n' + k.summary())
+        text = '# ' + str(self.count) + '\n' + k.summary()
+        self.addText(text)
+        logger.write_str(self.summaryLogHandle, text)
+        logger.write_str(self.rawLogHandle, k.serialize())
 
     @QtCore.Slot(str)
     def addText(self, text: str):
+        """ Add text to text view """
         self.textView.append(text)
-        logger.write_str(self.logHandle, text)
 
     @QtCore.Slot()
     def addComment(self):
-        self.addText('# ' + self.input.text())
+        """ Add comment to text view and log files"""
+        text = '# ' + self.input.text()
+        self.addText(text)
+        logger.write_str(self.summaryLogHandle, text)
+        logger.write_str(self.rawLogHandle, text)
+
 
     @QtCore.Slot()
     def clear(self):
