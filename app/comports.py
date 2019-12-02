@@ -57,6 +57,11 @@ class SerialConnection(QtCore.QObject):
         self.dropdown.addItem('--- Select COM Port ---')
         self.dropdown.addItems([p.device for p in self.availablePorts])
 
+
+    def sendCmd(self, cmd: str):
+        line = cmd + '\n'
+        self.serial.write(line.encode('utf-8'))
+
     def change_port(self, port: serial.Serial):
 
         if port and self.serial and port != self.serial.port:
@@ -114,11 +119,14 @@ class SerialConnection(QtCore.QObject):
 
 START = 'KEY '
 END = 'END'
+POS = 'POS '
+COMMENT = '# '
 
 class SerialParser(QtCore.QObject):
 
 
     newDataSet = QtCore.Signal(int, list, list)
+    comment = QtCore.Signal(str)
 
     def __init__(self):
         super(SerialParser, self).__init__()
@@ -133,18 +141,31 @@ class SerialParser(QtCore.QObject):
         if line.startswith(END):
             self.started = False
             self.newDataSet.emit(self.current_encoder, self.timestamps, self.positions)
+            return
 
-        if line.startswith(START):
+        elif line.startswith(START):
             self.current_encoder = int(line[len(START):])
             self.started = True
             self.timestamps = []
             self.positions = []
             return
 
-        if self.started:
+        elif line.startswith(POS):
+            s = '# Encoder positions: ' + line[len(POS):]
+            self.comment.emit(s)
+            return
+
+        elif line.startswith(COMMENT):
+            self.comment.emit(line)
+            return
+
+
+        if self.started and ":" in line:
             res = line.split(":")
             if len(res) == 2:
                 self.timestamps.append(int(res[0]) / 10)
                 self.positions.append(int(res[1]))
+        else:
+            print('** Received unknown string:', line)
 
 

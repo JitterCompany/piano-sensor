@@ -281,9 +281,10 @@ class TextOutputView(QtWidgets.QWidget):
         self.textView.append(text)
 
     @QtCore.Slot()
-    def addComment(self):
+    def addComment(self, text=None):
         """ Add comment to text view and log files"""
-        text = '# ' + self.input.text()
+        if text is None:
+            text = '# ' + self.input.text()
         self.addText(text)
         logger.write_str(self.summaryLogHandle, text)
         logger.write_str(self.rawLogHandle, text)
@@ -296,7 +297,8 @@ class TextOutputView(QtWidgets.QWidget):
 class MainView(QtWidgets.QWidget):
 
     refresh = QtCore.Signal()
-
+    resetEncoders = QtCore.Signal()
+    getPositions = QtCore.Signal()
 
     def __init__(self, toolbar, dropdown):
         super(MainView, self).__init__()
@@ -315,6 +317,9 @@ class MainView(QtWidgets.QWidget):
         self.refreshBtn.clicked.connect(self.refresh)
         self.toolbar.addWidget(self.refreshBtn)
 
+
+
+
         self.filepicker = FilePicker()
 
 
@@ -322,7 +327,17 @@ class MainView(QtWidgets.QWidget):
 
         empty.setSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Preferred)
         self.toolbar.addSeparator()
+
+        self.resetBtn = QtWidgets.QPushButton('Reset')
+        self.resetBtn.clicked.connect(self.resetEncoders)
+        self.toolbar.addWidget(self.resetBtn)
+
+        self.posBtn = QtWidgets.QPushButton('Pos')
+        self.posBtn.clicked.connect(self.getPositions)
+        self.toolbar.addWidget(self.posBtn)
+
         self.toolbar.addWidget(empty)
+        self.toolbar.addSeparator()
 
         self.toolbar.addWidget(QtWidgets.QLabel("Log directory:"))
 

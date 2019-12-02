@@ -11,8 +11,8 @@ set mem inaccessible-by-default off
 
 # common
 break Reset
-break main
-break main.rs:190
+# break main
+break main.rs:369
 
 load
 

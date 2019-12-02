@@ -19,6 +19,7 @@ pub trait EncoderInterface {
     fn ready(&mut self) -> bool;
     fn toggle_led(&mut self, delay: u16);
     fn zero(&mut self);
+    fn current_position(&mut self) -> i16;
 }
 
 pub struct Encoder<CHA: InputPin, CHB: InputPin, LED: OutputPin> {
@@ -67,6 +68,10 @@ impl<CHA, CHB, LED> EncoderInterface for Encoder<CHA, CHB, LED>
         // create new datapoint
         self.new_value(timestamp, self.position)
 
+    }
+
+    fn current_position(&mut self) -> i16 {
+        self.position
     }
 
     fn ready(&mut self) -> bool {

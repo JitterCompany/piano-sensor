@@ -355,13 +355,57 @@ const APP: () = {
 
     }
 
-    #[task(binds=USART2, priority = 1, resources=[rx2, tx3, cmd_buffer], spawn=[reset_encoders])]
+    #[task(resources=[encoder1, encoder2, encoder3, encoder4, encoder5, p], spawn=[send])]
+    fn encoder_positions(cx: encoder_positions::Context) {
+        let encoder_positions::Resources {
+            mut encoder1,
+            mut encoder2,
+            mut encoder3,
+            mut encoder4,
+            mut encoder5,
+            mut p,
+        } = cx.resources;
+
+        let mut pos: [i16; 5] = [1,2,3,4,5];
+        encoder1.lock(|encoder| pos[0] = encoder.current_position());
+        encoder2.lock(|encoder| pos[1] = encoder.current_position());
+        encoder3.lock(|encoder| pos[2] = encoder.current_position());
+        encoder4.lock(|encoder| pos[3] = encoder.current_position());
+        encoder5.lock(|encoder| pos[4] = encoder.current_position());
+
+
+        let mut string: ArrayString::<[u8; 40]> = ArrayString::new();
+        write!(string, "POS {},{},{},{},{}\n", pos[0], pos[1], pos[2], pos[3], pos[4]).ok();
+        p.lock(|p| write_string_to_queue(p, string.as_str()));
+        cx.spawn.send().ok();
+    }
+
+
+    // #[task(resources=[p], spawn=[send])]
+    // fn unknown_command(cx: unknown_command::Context, cmd: str) {
+    //     let unknown_command::Resources {
+    //         mut p,
+    //     } = cx.resources;
+
+
+    //     // let mut string: ArrayString::<[u8; 40]> = ArrayString::new();
+    //     p.lock(|p| {
+    //         write_string_to_queue(p, "unknown cmd \"");
+    //         write_string_to_queue(p, cmd);
+    //         write_string_to_queue(p, "\"\n");
+    //     });
+
+    //     cx.spawn.send().ok();
+    // }
+
+    #[task(binds=USART2, priority = 1, resources=[rx2, tx3, cmd_buffer, p], spawn=[reset_encoders, encoder_positions, send])]
     fn serial_cmd(cx: serial_cmd::Context) {
 
         let serial_cmd::Resources {
             rx2,
             tx3,
-            cmd_buffer
+            cmd_buffer,
+            mut p
         } = cx.resources;
 
         match rx2.read() {
@@ -379,8 +423,18 @@ const APP: () = {
                 if b == b'\n' {
                     if cmd_buffer.starts_with("reset") {
                         cx.spawn.reset_encoders().ok();
+                    } else if cmd_buffer.starts_with("pos") {
+                        cx.spawn.encoder_positions().ok();
                     } else {
-
+                        // cx.spawn.unknown_command().ok();
+                        p.lock(|p| {
+                            write_string_to_queue(p, "unknown cmd \"");
+                            // remove newline
+                            cmd_buffer.pop();
+                            write_string_to_queue(p, cmd_buffer);
+                            write_string_to_queue(p, "\"\n");
+                        });
+                        cx.spawn.send().ok();
                     }
                     cmd_buffer.clear();
                 }
