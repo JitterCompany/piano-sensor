@@ -298,6 +298,7 @@ class MainView(QtWidgets.QWidget):
 
     refresh = QtCore.Signal()
     resetEncoders = QtCore.Signal()
+    resetSystem = QtCore.Signal()
     getPositions = QtCore.Signal()
 
     def __init__(self, toolbar, dropdown):
@@ -329,8 +330,12 @@ class MainView(QtWidgets.QWidget):
         self.toolbar.addSeparator()
 
         self.resetBtn = QtWidgets.QPushButton('Reset')
-        self.resetBtn.clicked.connect(self.resetEncoders)
+        self.resetBtn.clicked.connect(self.resetSystem)
         self.toolbar.addWidget(self.resetBtn)
+
+        self.zeroBtn = QtWidgets.QPushButton('zero')
+        self.zeroBtn.clicked.connect(self.resetEncoders)
+        self.toolbar.addWidget(self.zeroBtn)
 
         self.posBtn = QtWidgets.QPushButton('Pos')
         self.posBtn.clicked.connect(self.getPositions)

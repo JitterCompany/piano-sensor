@@ -40,7 +40,9 @@ class PianoApp(QtWidgets.QApplication):
         self.mainView.refresh.connect(self.SerialConnection.refresh)
 
         self.mainView.resetEncoders.connect(lambda: self.SerialConnection.sendCmd('reset'))
+        self.mainView.resetSystem.connect(lambda: self.SerialConnection.sendCmd('sysreset'))
         self.mainView.getPositions.connect(lambda: self.SerialConnection.sendCmd('pos'))
+
 
         self.parser = SerialParser()
         self.SerialConnection.textStream.connect(self.parser.parse_line)
