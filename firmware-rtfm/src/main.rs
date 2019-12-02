@@ -106,7 +106,7 @@ const APP: () = {
         ext_p: Producer<'static, u8, U4096>,
         ext_c: Consumer<'static, u8, U4096>,
         uart_in_buffer: ArrayString::<[u8; 50]>,
-
+        cmd_buffer: ArrayString::<[u8; 10]>,
     }
 
     #[init(spawn = [startup])]
@@ -117,8 +117,6 @@ const APP: () = {
 
         let (ext_p, ext_c) = EXT_Q.split();
         let (p, c) = Q.split();
-
-
 
         // Cortex-M peripherals
         let _core: cortex_m::Peripherals = cx.core;
@@ -234,7 +232,7 @@ const APP: () = {
         let uart2_tx = gpioa.pa2.into_alternate_push_pull(&mut gpioa.crl);
         let uart2_rx = gpioa.pa3;
 
-        let serial2 = Serial::usart2(
+        let mut serial2 = Serial::usart2(
             _device.USART2,
             (uart2_tx, uart2_rx),
             &mut afio.mapr,
@@ -243,7 +241,7 @@ const APP: () = {
             &mut rcc.apb1,
         );
 
-        // serial2.listen(serial::Event::Rxne);
+        serial2.listen(serial::Event::Rxne);
 
         let (mut tx2, rx2) = serial2.split();
 
@@ -296,6 +294,7 @@ const APP: () = {
             ext_p,
             ext_c,
             uart_in_buffer: ArrayString::new(),
+            cmd_buffer: ArrayString::new(),
         }
     }
 
@@ -308,22 +307,87 @@ const APP: () = {
             mut encoder4,
             mut encoder5,
             led,
-            // mut time_ms,
         } = cx.resources;
 
         for _ in 0..3 {
             led.toggle().unwrap();
-            encoder1.lock(|encoder| encoder.toggle_led());
+            encoder1.lock(|encoder| encoder.toggle_led(20));
             led.toggle().unwrap();
-            encoder2.lock(|encoder| encoder.toggle_led());
+            encoder2.lock(|encoder| encoder.toggle_led(20));
             led.toggle().unwrap();
-            encoder3.lock(|encoder| encoder.toggle_led());
+            encoder3.lock(|encoder| encoder.toggle_led(20));
             led.toggle().unwrap();
-            encoder4.lock(|encoder| encoder.toggle_led());
+            encoder4.lock(|encoder| encoder.toggle_led(20));
             led.toggle().unwrap();
-            encoder5.lock(|encoder| encoder.toggle_led());
+            encoder5.lock(|encoder| encoder.toggle_led(20));
             led.toggle().unwrap();
         }
+
+    }
+
+    #[task(resources=[encoder1, encoder2, encoder3, encoder4, encoder5, p], spawn=[send])]
+    fn reset_encoders(cx: reset_encoders::Context) {
+
+        let reset_encoders::Resources {
+            mut encoder1,
+            mut encoder2,
+            mut encoder3,
+            mut encoder4,
+            mut encoder5,
+            mut p,
+        } = cx.resources;
+
+        encoder1.lock(|encoder| encoder.zero());
+        encoder2.lock(|encoder| encoder.zero());
+        encoder3.lock(|encoder| encoder.zero());
+        encoder4.lock(|encoder| encoder.zero());
+        encoder5.lock(|encoder| encoder.zero());
+
+        encoder1.lock(|encoder| encoder.toggle_led(10));
+        encoder2.lock(|encoder| encoder.toggle_led(10));
+        encoder3.lock(|encoder| encoder.toggle_led(10));
+        encoder4.lock(|encoder| encoder.toggle_led(10));
+        encoder5.lock(|encoder| encoder.toggle_led(10));
+
+        p.lock(|p| write_string_to_queue(p, "# Reset Encoders\n"));
+
+        cx.spawn.send().ok();
+
+    }
+
+    #[task(binds=USART2, priority = 1, resources=[rx2, tx3, cmd_buffer], spawn=[reset_encoders])]
+    fn serial_cmd(cx: serial_cmd::Context) {
+
+        let serial_cmd::Resources {
+            rx2,
+            tx3,
+            cmd_buffer
+        } = cx.resources;
+
+        match rx2.read() {
+            Ok(b) => {
+                match cmd_buffer.try_push(b as char) {
+                    Ok(_n)  => {},
+                    Err(_buffer_error) => {
+                        cmd_buffer.clear();
+                        return;
+                    }
+                }
+                // send byte to next board
+                tx3.write(b).ok();
+
+                if b == b'\n' {
+                    if cmd_buffer.starts_with("reset") {
+                        cx.spawn.reset_encoders().ok();
+                    } else {
+
+                    }
+                    cmd_buffer.clear();
+                }
+            },
+            Err(_e) => {}
+        }
+
 
     }
 

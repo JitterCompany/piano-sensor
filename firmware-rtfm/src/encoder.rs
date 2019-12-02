@@ -17,7 +17,8 @@ impl EncoderPair {
 pub trait EncoderInterface {
     fn update(&mut self, channel: &Channel, timestamp: u32) -> Option<EncoderPair>;
     fn ready(&mut self) -> bool;
-    fn toggle_led(&mut self);
+    fn toggle_led(&mut self, delay: u16);
+    fn zero(&mut self);
 }
 
 pub struct Encoder<CHA: InputPin, CHB: InputPin, LED: OutputPin> {
@@ -36,7 +37,6 @@ pub enum Channel {
     B
 }
 
-// impl<CHA: InputPin<Error = Infallible>, CHB: InputPin<Error = Infallible>, LED: OutputPin<Error = Infallible>> EncoderInterface for Encoder<CHA, CHB, LED> {
 impl<CHA, CHB, LED> EncoderInterface for Encoder<CHA, CHB, LED>
     where
     CHA: InputPin<Error = Infallible>,
@@ -51,22 +51,16 @@ impl<CHA, CHB, LED> EncoderInterface for Encoder<CHA, CHB, LED>
             Channel::A => {
                 if a == b {
                     self.position -= 1;
-                    // COUNTER.decrement(cs);
                 } else {
                     self.position += 1;
-                    // COUNTER.increment(cs);
                 }
-                // self.led.set_low().unwrap();
             },
             Channel::B => {
                 if a == b {
                     self.position += 1;
-                    // COUNTER.decrement(cs);
                 } else {
                     self.position -= 1;
-                    // COUNTER.increment(cs);
                 }
-                // self.led.set_high().unwrap();
             }
         }
 
@@ -81,15 +75,19 @@ impl<CHA, CHB, LED> EncoderInterface for Encoder<CHA, CHB, LED>
             self.ready = false;
             self.done = true;
             self.led.set_high().unwrap();
-            // self.reset();
         }
         is_ready
     }
 
-    fn toggle_led(&mut self) {
+    fn toggle_led(&mut self, delay: u16) {
         self.led.set_high().unwrap();
-        for _ in 0..40000 {}
+        for _ in 0..delay*1000 {}
         self.led.set_low().unwrap();
+    }
+
+    fn zero(&mut self) {
+        self.position = 0;
+        self.reset();
     }
 
 
