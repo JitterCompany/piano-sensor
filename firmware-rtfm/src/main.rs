@@ -10,6 +10,8 @@ use embedded_hal::digital::v2::OutputPin;
 
 use arrayvec::ArrayString;
 
+use rtfm::cyccnt::{U32Ext as _};
+
 use stm32f1xx_hal::{
     prelude::*,
     pac::{self, EXTI},
@@ -83,7 +85,7 @@ const BAUDRATE: u32 = 57600;
 const ENCODER_PREFIX: &str = "KEY ";
 const ENCODER_SUFFIX: &str = "END\n";
 
-#[rtfm::app(device = stm32f1xx_hal::pac, peripherals = true)]
+#[rtfm::app(device = stm32f1xx_hal::pac, peripherals = true, monotonic = rtfm::cyccnt::CYCCNT)]
 const APP: () = {
 
     struct Resources {
@@ -119,7 +121,10 @@ const APP: () = {
         let (p, c) = Q.split();
 
         // Cortex-M peripherals
-        let _core: cortex_m::Peripherals = cx.core;
+        let mut core: rtfm::Peripherals = cx.core;
+        // Initialize (enable) the monotonic timer (CYCCNT)
+        core.DCB.enable_trace();
+        core.DWT.enable_cycle_counter();
 
         // Device specific peripherals
         let _device = cx.device;
@@ -355,6 +360,11 @@ const APP: () = {
 
     }
 
+    #[task]
+    fn system_reset(_cx: system_reset::Context) {
+        cortex_m::peripheral::SCB::sys_reset();
+    }
+
     #[task(resources=[encoder1, encoder2, encoder3, encoder4, encoder5, p], spawn=[send])]
     fn encoder_positions(cx: encoder_positions::Context) {
         let encoder_positions::Resources {
@@ -380,25 +390,7 @@ const APP: () = {
         cx.spawn.send().ok();
     }
 
-
-    // #[task(resources=[p], spawn=[send])]
-    // fn unknown_command(cx: unknown_command::Context, cmd: str) {
-    //     let unknown_command::Resources {
-    //         mut p,
-    //     } = cx.resources;
-
-
-    //     // let mut string: ArrayString::<[u8; 40]> = ArrayString::new();
-    //     p.lock(|p| {
-    //         write_string_to_queue(p, "unknown cmd \"");
-    //         write_string_to_queue(p, cmd);
-    //         write_string_to_queue(p, "\"\n");
-    //     });
-
-    //     cx.spawn.send().ok();
-    // }
-
-    #[task(binds=USART2, priority = 1, resources=[rx2, tx3, cmd_buffer, p], spawn=[reset_encoders, encoder_positions, send])]
+    #[task(binds=USART2, priority = 1, resources=[rx2, tx3, cmd_buffer, p], spawn=[reset_encoders, encoder_positions, send], schedule=[system_reset])]
     fn serial_cmd(cx: serial_cmd::Context) {
 
         let serial_cmd::Resources {
@@ -425,6 +417,9 @@ const APP: () = {
                         cx.spawn.reset_encoders().ok();
                     } else if cmd_buffer.starts_with("pos") {
                         cx.spawn.encoder_positions().ok();
+                    } else if cmd_buffer.starts_with("sysreset") {
+                        let now = cx.start;
+                        cx.schedule.system_reset(now + 8_000_000.cycles()).ok();
                     } else {
                         // cx.spawn.unknown_command().ok();
                         p.lock(|p| {

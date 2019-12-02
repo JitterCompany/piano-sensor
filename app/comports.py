@@ -59,8 +59,9 @@ class SerialConnection(QtCore.QObject):
 
 
     def sendCmd(self, cmd: str):
-        line = cmd + '\n'
-        self.serial.write(line.encode('utf-8'))
+        if self.serial:
+            line = cmd + '\n'
+            self.serial.write(line.encode('utf-8'))
 
     def change_port(self, port: serial.Serial):
 
@@ -68,6 +69,7 @@ class SerialConnection(QtCore.QObject):
             # reader thread needs to be shut down
             self._stop_reader()
         self.serial = serial.Serial(port.device, BAUDRATE, timeout=10)
+        self.sendCmd('reset')
         print('open port: ', self.serial, self.serial.port)
         status.set_status('open port: {}'.format(self.serial.port))
         self._start_reader()
