@@ -1,4 +1,4 @@
-# Piano Force Sensor Firmware
+# Piano Sensor Firmware
 
 ## Dependencies
 
