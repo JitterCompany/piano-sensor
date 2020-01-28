@@ -75,7 +75,6 @@ class ResultView(QtWidgets.QWidget):
         # self.plot.update_plot(range(5))
 
         # self.setStyleSheet("font-weight: bold; font-size: {}px".format(24))
-        self.forceResult = QtWidgets.QLabel('- N')
         self.accelResult = QtWidgets.QLabel('- mm/s^2')
         self.encoder = QtWidgets.QLabel('-')
         self.risetimeResult = QtWidgets.QLabel('- s')
@@ -84,12 +83,6 @@ class ResultView(QtWidgets.QWidget):
         valueLayout = QtWidgets.QHBoxLayout()
         valueLayout.addWidget(QtWidgets.QLabel('Key'))
         valueLayout.addWidget(self.encoder)
-        self.layout.addLayout(valueLayout)
-
-        valueLayout = QtWidgets.QHBoxLayout()
-        valueLayout.addWidget(QtWidgets.QLabel('Force'))
-        valueLayout.addWidget(self.forceResult)
-
         self.layout.addLayout(valueLayout)
 
         valueLayout = QtWidgets.QHBoxLayout()
@@ -111,11 +104,10 @@ class ResultView(QtWidgets.QWidget):
         if k.valid():
             self.encoder.setText(str(k.encoder))
             self.current_keypress = k
-            rise_time, avg_accel, force = self.current_keypress.metrics()
+            rise_time, avg_accel = self.current_keypress.metrics()
             self.plot.show_position(self.current_keypress)
             self.accelResult.setText('{0:.2f} mm/s^2'.format(avg_accel))
             self.risetimeResult.setText('{0:.1f} ms'.format(rise_time))
-            self.forceResult.setText('{0:.2f} N'.format(force))
 
 
 class MatplotlibWidget(QtWidgets.QWidget):

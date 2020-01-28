@@ -5,8 +5,6 @@ import pandas as pd
 
 from PySide2 import QtCore
 
-from settings import DOWNWEIGHTS_g, INERTIA_g
-
 TICKS_PER_MM = 75/25.4 * 4
 
 record_threshold_min_mm = 3
@@ -74,11 +72,10 @@ class KeyPress:
 
     def metrics(self):
         """
-        returns rise_time, average_acceleration, force_N
+        returns rise_time, average_acceleration
 
         rise_time in milliseconds
         average_acceleration in mm/s^2 based no fitted speed
-        force_N in Newton based no configured downweight for the pressed key
         """
 
         t, accel, accel_polyfit = self.accel_data()
@@ -86,16 +83,7 @@ class KeyPress:
 
         rise_time = self.t[-1] - self.t[0]
 
-        # downweight and inertia in kg
-        DW = DOWNWEIGHTS_g[self.encoder - 1] / 1000
-        I = INERTIA_g[self.encoder - 1] / 1000
-
-        # acceleration in m/s^2
-        a = average_acceleration / 1000
-
-        force_N = (DW + (I  * a))
-
-        return rise_time, average_acceleration, force_N
+        return rise_time, average_acceleration
 
     def average_fitted_acceleration(self):
         t, accel, accel_polyfit = self.accel_data()

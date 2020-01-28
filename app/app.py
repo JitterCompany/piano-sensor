@@ -26,7 +26,7 @@ class PianoApp(QtWidgets.QApplication):
 
 
         self.window = MainWindow()
-        self.window.setWindowTitle("Piano Force Sensor")
+        self.window.setWindowTitle("Piano Sensor")
 
         self.window.show()
         signal.signal(signal.SIGINT, self.window.quit)
@@ -54,7 +54,7 @@ class PianoApp(QtWidgets.QApplication):
         self.parser.newDataSet.connect(lambda i, t, p: self.mainView.textOutputView.new_results(KeyPress(i, t,p)))
 
         status.set_status_logger(self.set_status_message)
-        status.set_status('Force Sensor Ready..')
+        status.set_status('Piano Sensor Ready..')
 
     def quit(self):
         self.mainView.textOutputView.quit()
