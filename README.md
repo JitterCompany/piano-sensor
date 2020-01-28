@@ -1,5 +1,7 @@
 # Piano Sensor Project
 
+![](img/pianosensor-front.jpg)
+
 - Electronic design
 - Firmware written in Rust for stm32f103
 - Python app for data visualization
@@ -9,9 +11,9 @@
 
 This repo contains the following KiCad projects
 
-* encoder-breakout is the breakout pcb for the AEDR-8300 optical encoder IC
-* main-board is a daisychainable board that connects to five encoder-breakouts
-* uart-adapter connects to the main-board and delivers power. 
+* `encoder-breakout` is the breakout pcb for the AEDR-8300 optical encoder IC
+* `main-board` is a daisychainable board that connects to five encoder-breakouts
+* `uart-adapter` connects to the main-board and computer (USB) and also delivers power. 
 
 
 ## Firmware
@@ -23,6 +25,8 @@ There are two firmware projects
 
 
 ## App
+
+![](img/app_screenshot.jpg)
 
 The python app lives in a Pipenv virtual environment. First time you need to run the following command to install:
 
